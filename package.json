@@ -2,6 +2,9 @@
   "name": "time-tracker-app",
   "private": true,
   "version": "1.0.0",
+  "description": "A lightweight, desktop time-tracking application built with **Electron**, **React**, and **SQLite**.",
+  "author": "Saurav Kumar",
+  "homepage": "https://github.com/dev-sam17/time-tracker",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {

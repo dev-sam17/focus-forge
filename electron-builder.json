@@ -1,12 +1,14 @@
 {
-    "appId": "com.electron.app",
-    "productName": "electron-app",
+    "appId": "com.time-tracker.app",
+    "productName": "time-tracker-app",
     "files": [
         "dist-electron",
         "dist-react"
     ],
-    "extraResources":["dist-electron/preload.cjs"],
-    "icon": "./electron-icon.png",
+    "extraResources": [
+        "dist-electron/preload.cjs"
+    ],
+    "icon": "./app-icon.png",
     "mac": {
         "target": "dmg"
     },
