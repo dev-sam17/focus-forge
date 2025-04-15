@@ -1,0 +1,25 @@
+{
+    "appId": "com.electron.app",
+    "productName": "electron-app",
+    "files": [
+        "dist-electron",
+        "dist-react"
+    ],
+    "extraResources":["dist-electron/preload.cjs"],
+    "icon": "./electron-icon.png",
+    "mac": {
+        "target": "dmg"
+    },
+    "linux": {
+        "target": [
+            "AppImage"
+        ],
+        "category": "Utility"
+    },
+    "win": {
+        "target": [
+            "portable",
+            "msi"
+        ]
+    }
+}
