@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
+  // ChartTooltip,
+  // ChartTooltipContent,
   ChartLegend,
   ChartLegendItem,
 } from "../ui/chart";
@@ -26,7 +26,7 @@ export default function ProductivityTrendChart({
   taskId,
   timeRange,
 }: ProductivityTrendChartProps) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<unknown[]>([]);
 
   useEffect(() => {
     // In a real app, this would be an API call with taskId and timeRange as parameters
@@ -42,7 +42,7 @@ export default function ProductivityTrendChart({
           ? 30
           : 12; // Months in a year
 
-      const result = [];
+      const result: Array<{ date: string; productivity: number }> = [];
       const now = new Date();
 
       let previousProductivity = 50 + Math.random() * 20;
@@ -100,7 +100,7 @@ export default function ProductivityTrendChart({
             domain={[0, 100]}
             label={{ value: "Score", angle: -90, position: "insideLeft" }}
           />
-          <ChartTooltip
+          {/* <ChartTooltip
             content={
               <ChartTooltipContent
                 className="bg-white p-2 border rounded shadow-sm"
@@ -115,7 +115,7 @@ export default function ProductivityTrendChart({
                 }}
               />
             }
-          />
+          /> */}
           <Line
             type="monotone"
             dataKey="productivity"

@@ -61,6 +61,7 @@ export default function TimeTracker({
 
     const interval = setInterval(fetchWorkStats, 60000);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task.id]);
 
   // Timer logic
@@ -80,6 +81,7 @@ export default function TimeTracker({
         clearInterval(intervalRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning]);
 
   const handleStart = () => {

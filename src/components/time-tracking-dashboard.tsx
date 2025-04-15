@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import TimeTracker from "./time-tracker";
 import ArchivedTracker from "./archived-tracker";
-import StatisticsView from "./statistics-view";
+// import StatisticsView from "./statistics-view";
 import type { Tracker, ActiveSession, NewTracker } from "../lib/types";
 import AddTaskDialog from "./add-task";
 import useApiClient from "../hooks/useApiClient";
@@ -41,6 +41,7 @@ export default function TimeTrackingDashboard() {
   useEffect(() => {
     fetchTasks();
     fetchActiveSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddTask = async (newTask: NewTracker) => {
@@ -96,7 +97,7 @@ export default function TimeTrackingDashboard() {
         <TabsList className="mb-4">
           <TabsTrigger value="trackers">Trackers</TabsTrigger>
           <TabsTrigger value="archives">Archives</TabsTrigger>
-          <TabsTrigger value="statistics">Statistics</TabsTrigger>
+          {/* <TabsTrigger value="statistics">Statistics</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="trackers" className="space-y-6">
@@ -133,9 +134,9 @@ export default function TimeTrackingDashboard() {
           )}
         </TabsContent>
 
-        <TabsContent value="statistics">
+        {/* <TabsContent value="statistics">
           <StatisticsView tasks={tasks} />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

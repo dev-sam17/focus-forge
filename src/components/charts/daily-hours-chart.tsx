@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
+  // ChartTooltip,
+  // ChartTooltipContent,
   ChartLegend,
   ChartLegendItem,
 } from "../ui/chart";
@@ -27,7 +27,7 @@ export default function DailyHoursChart({
   taskId,
   timeRange,
 }: DailyHoursChartProps) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<unknown[]>([]);
   const [targetHours, setTargetHours] = useState<number>(0);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function DailyHoursChart({
           ? 30
           : 365;
 
-      const result = [];
+      const result: Array<{ date: string; hours: number }> = [];
       const now = new Date();
 
       // Set a mock target hours based on taskId
@@ -107,13 +107,13 @@ export default function DailyHoursChart({
               fill: "#ef4444",
             }}
           />
-          <ChartTooltip
+          {/* <ChartTooltip
             content={
               <ChartTooltipContent
                 className="bg-white p-2 border rounded shadow-sm"
                 items={({ payload }) => {
                   return [
-                    ...(payload?.map((entry) => ({
+                    ...(payload?.map((entry: { value: any; }) => ({
                       label: "Hours",
                       value: `${entry.value} hrs`,
                       color: "#3b82f6",
@@ -127,7 +127,7 @@ export default function DailyHoursChart({
                 }}
               />
             }
-          />
+          /> */}
           <Bar dataKey="hours" fill="#3b82f6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>

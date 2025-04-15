@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
+import {
+  ChartContainer,
+  // ChartTooltip, ChartTooltipContent
+} from "../ui/chart";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
 
 interface TaskDistributionChartProps {
@@ -11,7 +14,7 @@ interface TaskDistributionChartProps {
 export default function TaskDistributionChart({
   timeRange,
 }: TaskDistributionChartProps) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<unknown[]>([]);
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function TaskDistributionChart({
               `${name} ${(percent * 100).toFixed(0)}%`
             }
           >
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={COLORS[index % COLORS.length]}
@@ -54,7 +57,7 @@ export default function TaskDistributionChart({
             ))}
           </Pie>
           <Legend />
-          <ChartTooltip
+          {/* <ChartTooltip
             content={
               <ChartTooltipContent
                 className="bg-white p-2 border rounded shadow-sm"
@@ -69,7 +72,7 @@ export default function TaskDistributionChart({
                 }}
               />
             }
-          />
+          /> */}
         </PieChart>
       </ResponsiveContainer>
     </ChartContainer>

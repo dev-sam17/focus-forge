@@ -10,13 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import type { Task } from "@/lib/types";
+import type { Tracker } from "@/lib/types";
 import DailyHoursChart from "./charts/daily-hours-chart";
 import TaskDistributionChart from "./charts/task-distribution-chart";
 import ProductivityTrendChart from "./charts/productivity-trend-chart";
 
 interface StatisticsViewProps {
-  tasks: Task[];
+  tasks: Tracker[];
 }
 
 export default function StatisticsView({ tasks }: StatisticsViewProps) {
@@ -46,7 +46,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
               <SelectItem value="all">All Tasks</SelectItem>
               {tasks.map((task) => (
                 <SelectItem key={task.id} value={task.id}>
-                  {task.name}
+                  {task.tracker_name}
                 </SelectItem>
               ))}
             </SelectContent>
