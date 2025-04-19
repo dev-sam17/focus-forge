@@ -171,20 +171,41 @@ export function computeWorkStatsByTrackerId(trackerId: string) {
             dailyTotals[date] = (dailyTotals[date] || 0) + session.duration_minutes;
         }
 
-        let workDebt = 0;
+        // for (const [date, minutes] of Object.entries(dailyTotals)) {
+        //     const hours = minutes / 60;
+        //     const day = new Date(date).getDay();
+
+        //     if (day === 0 || day === 6) {
+        //         workAdvance += hours;
+        //     } else if (hours < tracker.target_hours) {
+        //         workDebt += (tracker.target_hours - hours);
+        //     } else {
+        //         workAdvance += (hours - tracker.target_hours);
+        //     }
+        // }
+
+        let totalWorkDays = 0;
+        let totalWorkHours = 0;
         let workAdvance = 0;
+        let workDebt = 0;
 
         for (const [date, minutes] of Object.entries(dailyTotals)) {
             const hours = minutes / 60;
             const day = new Date(date).getDay();
 
             if (day === 0 || day === 6) {
-                workAdvance += hours;
-            } else if (hours < tracker.target_hours) {
-                workDebt += (tracker.target_hours - hours);
+                totalWorkHours += hours;
             } else {
-                workAdvance += (hours - tracker.target_hours);
+                totalWorkDays += 1;
+                totalWorkHours += hours;
             }
+        }
+
+        const targetWorkHours = totalWorkDays * tracker.target_hours;
+        if (targetWorkHours > totalWorkHours) {
+            workDebt = targetWorkHours - totalWorkHours;
+        } else {
+            workAdvance = targetWorkHours - totalWorkHours;
         }
 
         const result = {

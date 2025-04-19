@@ -1,6 +1,6 @@
 {
     "appId": "com.time-tracker.app",
-    "productName": "time-tracker-app",
+    "productName": "Time Tracker",
     "files": [
         "dist-electron",
         "dist-react"
@@ -20,7 +20,6 @@
     },
     "win": {
         "target": [
-            "portable",
             "msi"
         ]
     }

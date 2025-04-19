@@ -6,8 +6,10 @@ const useApiClient = () => {
     body?: unknown
   ): Promise<{ success: boolean; data?: T; error?: string }> => {
     try {
+      const serverPort = await window.electron.getServerPort();
+
       // const res = await fetch(`${window.apiBaseUrl}/api${endpoint}`, {
-      const res = await fetch(`http://localhost:3000/api${endpoint}`, {
+      const res = await fetch(`http://localhost:${serverPort}/api${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',

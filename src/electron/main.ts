@@ -27,7 +27,7 @@ async function createServer() {
   });
 
   // Find an available port (starting from 3000)
-  portfinder.setBasePort(3000);
+  portfinder.setBasePort(3210);
   PORT = await portfinder.getPortPromise();
 
   // Start the server
