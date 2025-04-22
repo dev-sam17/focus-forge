@@ -205,7 +205,7 @@ export function computeWorkStatsByTrackerId(trackerId: string) {
         if (targetWorkHours > totalWorkHours) {
             workDebt = targetWorkHours - totalWorkHours;
         } else {
-            workAdvance = targetWorkHours - totalWorkHours;
+            workAdvance = totalWorkHours - targetWorkHours;
         }
 
         const result = {
