@@ -92,16 +92,16 @@ export default function TimeTrackingDashboard() {
   const archivedTasks = tasks.filter((task) => task.archived);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-[calc(100vh-12rem)]">
       <Tabs defaultValue="trackers" className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 bg-white dark:bg-gray-800 p-1 rounded-lg">
           <TabsTrigger value="trackers">Trackers</TabsTrigger>
           <TabsTrigger value="archives">Archives</TabsTrigger>
           {/* <TabsTrigger value="statistics">Statistics</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="trackers" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
             {activeTasks.map((task) => (
               <TimeTracker
                 key={task.id}
@@ -118,11 +118,11 @@ export default function TimeTrackingDashboard() {
 
         <TabsContent value="archives" className="space-y-6">
           {archivedTasks.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="flex items-center justify-center min-h-[50vh] text-gray-500">
               No archived trackers found
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
               {archivedTasks.map((task) => (
                 <ArchivedTracker
                   key={task.id}
