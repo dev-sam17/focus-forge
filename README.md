@@ -1,6 +1,6 @@
 # 🕒 Time Tracker App
 
-A lightweight, desktop time-tracking application built with **Electron**, **React**, and **SQLite**. Designed for developers and productivity-focused users to track daily work hours across multiple projects with support for tracking sessions, calculating work debt/advance, and archiving completed tasks.
+A lightweight, desktop time-tracking application built with **Electron** and **React**. Designed for developers and productivity-focused users to track daily work hours across multiple projects with support for tracking sessions, calculating work debt/advance, and archiving completed tasks.
 
 ---
 
@@ -9,7 +9,7 @@ A lightweight, desktop time-tracking application built with **Electron**, **Reac
 - ⏱️ Track time with start/stop sessions
 - 📊 Compute daily work debt and advance
 - 📁 Archive completed trackers
-- 💾 Persistent local storage using SQLite
+- 💾 Persistent storage on separate backend server
 - 📉 Statistics view for daily performance ( coming in next version)
 - 🎯 Set target daily hours per tracker
 
@@ -18,7 +18,7 @@ A lightweight, desktop time-tracking application built with **Electron**, **Reac
 ## 🛠 Tech Stack
 
 - **Frontend**: React + Tailwind CSS
-- **Backend**: Node.js + SQLite (via `better-sqlite3`)
+- **Backend**: Node.js + Prisma + MySql (Separate Backend)
 - **Runtime**: Electron for cross-platform desktop support
 
 ---
