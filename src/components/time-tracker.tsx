@@ -31,10 +31,11 @@ export default function TimeTracker({
   onArchive,
 }: TimeTrackerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
+  
   const [isRunning, setIsRunning] = useState(false);
   const [workStats, setWorkStats] = useState<WorkStats>({
-    work_advance: 0,
-    work_debt: 0,
+    workAdvance: 0,
+    workDebt: 0,
   });
 
   // @ts-expect-error errors here
@@ -44,13 +45,15 @@ export default function TimeTracker({
   // Initialize from session if available
   useEffect(() => {
     if (session) {
-      setElapsedTime(Date.now() - session.start_time);
+      const startTimestamp = new Date(session.startTime).getTime();
+      setElapsedTime(Date.now() - startTimestamp);
       setIsRunning(true);
     }
   }, [session]);
 
   const fetchWorkStats = async () => {
     const res = await api<WorkStats>(`/trackers/${task.id}/stats`);
+    console.log(res)
     // @ts-expect-error errors here
     setWorkStats(res.data);
   };
@@ -112,7 +115,7 @@ export default function TimeTracker({
     <Card className="overflow-hidden">
       <CardHeader className="bg-gray-50">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{task.tracker_name}</CardTitle>
+          <CardTitle className="text-lg">{task.trackerName}</CardTitle>
           <Badge variant={isRunning ? "default" : "outline"}>
             {isRunning ? "Active" : "Inactive"}
           </Badge>
@@ -129,7 +132,7 @@ export default function TimeTracker({
 
           <div className="flex items-center text-sm text-gray-500">
             <span>Daily Target: </span>
-            <span className="ml-1 font-medium">{task.target_hours} hours</span>
+            <span className="ml-1 font-medium">{task.targetHours} hours</span>
           </div>
 
           {workStats && (
@@ -137,13 +140,13 @@ export default function TimeTracker({
               <div className="p-2 bg-red-50 rounded-md">
                 <div className="text-xs text-gray-500">Work Debt</div>
                 <div className="font-semibold text-red-600">
-                  {workStats.work_debt} hrs
+                  {workStats.workDebt} hrs
                 </div>
               </div>
               <div className="p-2 bg-green-50 rounded-md">
                 <div className="text-xs text-gray-500">Work Advance</div>
                 <div className="font-semibold text-green-600">
-                  {workStats.work_advance} hrs
+                  {workStats.workAdvance} hrs
                 </div>
               </div>
             </div>

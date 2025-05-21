@@ -1,33 +1,33 @@
 
 export interface ActiveSession {
-  tracker_id: string;
-  start_time: number;
+  trackerId: string;
+  startTime: number;
 }
 
 export interface Session {
-  tracker_id: string;
-  start_time: number;
-  end_time: number;
-  duration_minutes: number;
+  trackerId: string;
+  startTime: number;
+  endTime: number;
+  durationMinutes: number;
 }
 
 export interface Tracker {
   id: string;
-  tracker_name: string;
-  target_hours: number;
+  trackerName: string;
+  targetHours: number;
   archived: number;
   description: string;
 }
 
 export interface NewTracker {
-  tracker_name: string;
-  target_hours: number;
+  trackerName: string;
+  targetHours: number;
   description?: string;
 }
 
 export interface WorkStats {
-  work_debt: number;
-  work_advance: number;
+  workDebt: number;
+  workAdvance: number;
 } 
 
 export interface SessionData {

@@ -6,10 +6,9 @@ const useApiClient = () => {
     body?: unknown
   ): Promise<{ success: boolean; data?: T; error?: string }> => {
     try {
-      const serverPort = await window.electron.getServerPort();
+      const serverUrl = import.meta.env.VITE_API_URL
 
-      // const res = await fetch(`${window.apiBaseUrl}/api${endpoint}`, {
-      const res = await fetch(`http://localhost:${serverPort}/api${endpoint}`, {
+      const res = await fetch(`${serverUrl}/api${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',

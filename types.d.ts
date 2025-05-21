@@ -20,7 +20,6 @@ type StaticData = {
 type EventPayloadMapping = {
     statistics: Statistics;
     getStaticData: StaticData;
-    getServerPort: number;
 }
 
 type UnsubscribeFunction = () => void;
@@ -34,8 +33,6 @@ interface Window {
     electron: {
         subscribeStatistics: (callback: (statistics: Statistics) => void) => UnsubscribeFunction;
         getStaticData: () => Promise<StaticData>;
-        getServerPort: () => Promise<number>;
     };
-    apiBaseUrl: string;
 }
 

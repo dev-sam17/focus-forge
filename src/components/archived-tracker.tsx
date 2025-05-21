@@ -31,7 +31,7 @@ export default function ArchivedTracker({
     <Card className="overflow-hidden opacity-80 hover:opacity-100 transition-opacity">
       <CardHeader className="bg-gray-100">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{task.tracker_name}</CardTitle>
+          <CardTitle className="text-lg">{task.trackerName}</CardTitle>
           <Badge variant="outline">Archived</Badge>
         </div>
         <p className="text-sm text-gray-500">{task.description}</p>
@@ -42,7 +42,7 @@ export default function ArchivedTracker({
           <div className="flex items-center text-sm text-gray-500">
             <Clock className="mr-2 h-4 w-4" />
             <span>Daily Target: </span>
-            <span className="ml-1 font-medium">{task.target_hours} hours</span>
+            <span className="ml-1 font-medium">{task.targetHours} hours</span>
           </div>
         </div>
       </CardContent>

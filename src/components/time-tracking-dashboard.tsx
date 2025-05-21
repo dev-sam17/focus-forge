@@ -26,12 +26,12 @@ export default function TimeTrackingDashboard() {
   };
 
   const fetchActiveSessions = async () => {
-    const res = await api<ActiveSession[]>("/trackers/activeSessions");
+    const res = await api<ActiveSession[]>("/sessions/active");
     console.log(res);
     if (res.success && res.data) {
       setActiveSessions(
         res.data.reduce((acc, session) => {
-          acc[session.tracker_id] = session;
+          acc[session.trackerId] = session;
           return acc;
         }, {})
       );
@@ -53,7 +53,7 @@ export default function TimeTrackingDashboard() {
   };
 
   const handleArchiveTask = async (taskId: string) => {
-    const res = await api(`/trackers/${taskId}/archive`);
+    const res = await api(`/trackers/${taskId}/archive`, "POST");
 
     if (res.success) {
       fetchTasks();
@@ -71,7 +71,7 @@ export default function TimeTrackingDashboard() {
   };
 
   const handleSessionStart = async (taskId: string) => {
-    const res = await api(`/trackers/${taskId}/start`);
+    const res = await api(`/trackers/${taskId}/start`, "POST");
 
     if (res.success) {
       fetchActiveSessions();
@@ -80,7 +80,7 @@ export default function TimeTrackingDashboard() {
   };
 
   const handleSessionEnd = async (taskId: string) => {
-    const res = await api(`/trackers/${taskId}/stop`);
+    const res = await api(`/trackers/${taskId}/stop`, "POST");
 
     if (res.success) {
       fetchActiveSessions();
