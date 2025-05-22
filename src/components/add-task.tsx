@@ -17,6 +17,7 @@ interface AddTaskDialogProps {
 }
 
 export default function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
+  const [open, setOpen] = useState(false);
   const [taskName, setTaskName] = useState("");
   const [targetHours, setTargetHours] = useState("");
   const [description, setDescription] = useState("");
@@ -26,19 +27,20 @@ export default function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
 
     const target_hours = parseFloat(targetHours) || 0;
     const newTask = {
-      tracker_name: taskName,
+      trackerName: taskName, 
       description,
-      target_hours,
+      targetHours: target_hours,
     };
 
     onAddTask(newTask);
     setTaskName("");
     setTargetHours("");
     setDescription("");
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
           <span className="text-gray-500">Add New Tracker</span>
