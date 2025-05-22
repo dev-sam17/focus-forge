@@ -29,3 +29,6 @@ dist-electron
 .env 
 .env.development
 .env.production
+
+# windsurf rules
+.windsurfrules
