@@ -113,39 +113,39 @@ export default function TimeTracker({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="bg-gray-50">
+      <CardHeader className="bg-gray-50 p-3">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{task.trackerName}</CardTitle>
-          <Badge variant={isRunning ? "default" : "outline"}>
+          <CardTitle className="text-base">{task.trackerName}</CardTitle>
+          <Badge variant={isRunning ? "default" : "outline"} className="text-xs">
             {isRunning ? "Active" : "Inactive"}
           </Badge>
         </div>
-        <p className="text-sm text-gray-500">{task.description}</p>
+        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
       </CardHeader>
 
-      <CardContent className="pt-6">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-4xl font-mono font-bold flex items-center">
-            <Clock className="mr-2 h-6 w-6 text-gray-400" />
+      <CardContent className="pt-3 pb-2 px-3">
+        <div className="flex flex-col items-center space-y-2">
+          <div className="text-2xl font-mono font-bold flex items-center">
+            <Clock className="mr-1.5 h-4 w-4 text-gray-400" />
             {formatTime(elapsedTime)}
           </div>
 
-          <div className="flex items-center text-sm text-gray-500">
+          <div className="flex items-center text-xs text-gray-500">
             <span>Daily Target: </span>
             <span className="ml-1 font-medium">{task.targetHours} hours</span>
           </div>
 
           {workStats && (
-            <div className="grid grid-cols-2 w-full gap-4 text-center">
-              <div className="p-2 bg-red-50 rounded-md">
-                <div className="text-xs text-gray-500">Work Debt</div>
-                <div className="font-semibold text-red-600">
+            <div className="grid grid-cols-2 w-full gap-2 text-center">
+              <div className="p-1.5 bg-red-50 rounded">
+                <div className="text-[10px] text-gray-500">Work Debt</div>
+                <div className="font-medium text-xs text-red-600">
                   {workStats.workDebt} hrs
                 </div>
               </div>
-              <div className="p-2 bg-green-50 rounded-md">
-                <div className="text-xs text-gray-500">Work Advance</div>
-                <div className="font-semibold text-green-600">
+              <div className="p-1.5 bg-green-50 rounded">
+                <div className="text-[10px] text-gray-500">Work Advance</div>
+                <div className="font-medium text-xs text-green-600">
                   {workStats.workAdvance} hrs
                 </div>
               </div>
@@ -154,22 +154,22 @@ export default function TimeTracker({
         </div>
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-2 bg-gray-50 border-t">
-        <div className="flex justify-between w-full">
+      <CardFooter className="flex flex-col gap-1.5 bg-gray-50 border-t p-2">
+        <div className="flex justify-between w-full gap-2">
           <Button
             variant={isRunning ? "outline" : "default"}
             size="sm"
             onClick={handleStart}
-            className="w-1/2 mr-2"
+            className="w-1/2 h-7 text-xs"
             disabled={isRunning}
           >
             {isRunning ? (
               <>
-                <Disc className="h-4 w-4 mr-2" /> Started
+                <Disc className="h-3 w-3 mr-1" /> Started
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 mr-2" /> Start
+                <Play className="h-3 w-3 mr-1" /> Start
               </>
             )}
           </Button>
@@ -177,19 +177,19 @@ export default function TimeTracker({
             variant="destructive"
             size="sm"
             onClick={handleStop}
-            className="w-1/2"
+            className="w-1/2 h-7 text-xs"
             disabled={elapsedTime === 0}
           >
-            <Square className="h-4 w-4 mr-2" /> Stop
+            <Square className="h-3 w-3 mr-1" /> Stop
           </Button>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={handleArchive}
-          className="w-full"
+          className="w-full h-7 text-xs"
         >
-          <Archive className="h-4 w-4 mr-2" /> Archive Tracker
+          <Archive className="h-3 w-3 mr-1" /> Archive Tracker
         </Button>
       </CardFooter>
     </Card>

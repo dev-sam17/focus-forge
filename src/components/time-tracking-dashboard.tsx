@@ -153,7 +153,7 @@ export default function TimeTrackingDashboard() {
           </TabsList>
 
           <TabsContent value="trackers" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr">
               {activeTasks.map((task) => (
                 <TimeTracker
                   key={task.id}
