@@ -16,6 +16,7 @@ export interface Tracker {
   trackerName: string;
   targetHours: number;
   archived: number;
+  workDays: string;
   description: string;
 }
 
