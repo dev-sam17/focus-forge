@@ -6,8 +6,8 @@ export interface ActiveSession {
 
 export interface Session {
   trackerId: string;
-  startTime: number;
-  endTime: number;
+  startTime: Date;
+  endTime: Date;
   durationMinutes: number;
 }
 
@@ -18,6 +18,8 @@ export interface Tracker {
   archived: number;
   workDays: string;
   description: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface NewTracker {
@@ -34,13 +36,13 @@ export interface WorkStats {
 export interface SessionData {
   id: string
   taskId: string
-  startTime: number
-  endTime: number
+  startTime: Date
+  endTime: Date
   duration: number
 }
 
 export interface DailyStatistics {
-  date: string
+  date: Date
   hours: number
 }
 
@@ -52,6 +54,6 @@ export interface TaskDistribution {
 }
 
 export interface ProductivityData {
-  date: string
+  date: Date
   score: number
 }
