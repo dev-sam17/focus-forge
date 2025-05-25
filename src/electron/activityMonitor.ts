@@ -26,6 +26,7 @@ export function startIdleMonitoring(
     
     if (idleTime >= idleThresholdSeconds) {
       mainWindow.webContents.send('user-inactive', true);
+      mainWindow.show();
     } else if (debug) {
       console.debug(`[Activity Monitor] Current idle time: ${idleTime}s`);
       mainWindow.webContents.send('user-idle-time', idleTime);
