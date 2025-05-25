@@ -11,8 +11,21 @@ let forceQuit = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    title: 'Time Tracker',
+    width: 800,
+    height: 600,
+    frame: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#1a1b26',
+      symbolColor: '#ffffff',
+      height: 30
+    },
     webPreferences: {
       preload: getPreloadPath(),
+      contextIsolation: true,
+      nodeIntegration: true,
+      spellcheck: true
     },
   });
 
@@ -21,6 +34,21 @@ function createWindow() {
   } else {
     mainWindow.loadFile(getUIPath());
   }
+
+  // Create context menu
+  mainWindow.webContents.on('context-menu', () => {
+    const contextMenu = Menu.buildFromTemplate([
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { type: 'separator' },
+      { role: 'selectAll' },
+      { type: 'separator' },
+      { role: 'reload' },
+      { role: 'toggleDevTools' }
+    ]);
+    contextMenu.popup();
+  });
 
   // Prevent window from being closed
   mainWindow.on('close', (event) => {
@@ -59,7 +87,6 @@ function createTray() {
 
   tray.setContextMenu(contextMenu);
 
-  // Double click on tray icon shows the window
   tray.on('double-click', () => {
     mainWindow?.show();
   });
