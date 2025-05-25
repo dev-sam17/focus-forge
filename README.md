@@ -8,6 +8,7 @@ A lightweight, desktop time-tracking application built with **Electron** and **R
 
 - ⏱️ Track time with start/stop sessions
 - 📊 Compute daily work debt and advance
+- 🕒 Inactivity detection and auto-stop
 - 📁 Archive completed trackers
 - 💾 Persistent storage on separate backend server
 - 📉 Statistics view for daily performance ( coming in next version)
