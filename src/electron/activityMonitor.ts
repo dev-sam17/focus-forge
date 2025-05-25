@@ -40,8 +40,21 @@ export function startIdleMonitoring(
     checkIdleTime(); // Initial check
     intervalId = setInterval(checkIdleTime, checkIntervalMs);
 
-    // Cleanup when app quits
-    appInstance.on('will-quit', stop);
+    // Handle normal app quit
+    appInstance.on('before-quit', cleanup);
+
+    // Handle system shutdown/restart
+    powerMonitor.on('shutdown', cleanup);
+    powerMonitor.on('suspend', cleanup);
+
+    // Handle window close
+
+    function cleanup() {
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('user-inactive', true);
+      }
+      stop();
+    }
   }
 
   function stop() {
