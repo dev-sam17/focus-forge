@@ -142,7 +142,7 @@ export default function TimeTracker({
                 <span
                   key={index}
                   className={`w-6 h-6 flex items-center justify-center rounded ${
-                    workDaysArray.includes(index === 0 ? 7 : index)
+                    workDaysArray.includes(index)
                       ? 'bg-primary text-primary-foreground'
                       : 'text-gray-400'
                   }`}
