@@ -46,7 +46,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
               <SelectItem value="all">All Tasks</SelectItem>
               {tasks.map((task) => (
                 <SelectItem key={task.id} value={task.id}>
-                  {task.tracker_name}
+                  {task.trackerName}
                 </SelectItem>
               ))}
             </SelectContent>
