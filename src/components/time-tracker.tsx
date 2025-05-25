@@ -135,6 +135,24 @@ export default function TimeTracker({
             <span className="ml-1 font-medium">{task.targetHours} hours</span>
           </div>
 
+          <div className="flex gap-1.5 text-xs">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => {
+              const workDaysArray = task.workDays.split(',').map(Number);
+              return (
+                <span
+                  key={index}
+                  className={`w-6 h-6 flex items-center justify-center rounded ${
+                    workDaysArray.includes(index === 0 ? 7 : index)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {day}
+                </span>
+              );
+            })}
+          </div>
+
           {workStats && (
             <div className="grid grid-cols-2 w-full gap-2 text-center">
               <div className="p-1.5 bg-red-50 rounded">
