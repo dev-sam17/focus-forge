@@ -20,6 +20,8 @@ type StaticData = {
 type EventPayloadMapping = {
     statistics: Statistics;
     getStaticData: StaticData;
+    "user-idle-time": number;
+    "user-inactive": boolean;
 }
 
 type UnsubscribeFunction = () => void;
@@ -33,6 +35,8 @@ interface Window {
     electron: {
         subscribeStatistics: (callback: (statistics: Statistics) => void) => UnsubscribeFunction;
         getStaticData: () => Promise<StaticData>;
+        subscribeUserIdleTime: (callback: (idleTime: number) => void) => UnsubscribeFunction;
+        subscribeUserInactive: (callback: (inactive: boolean) => void) => UnsubscribeFunction;
     };
 }
 

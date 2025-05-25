@@ -2,17 +2,14 @@ import { app, BrowserWindow } from 'electron';
 import { isDev } from './util.js';
 import { pollResources } from './resourceManager.js';
 import { getPreloadPath, getUIPath } from './pathResolver.js';
+import { startIdleMonitoring } from './activityMonitor.js';
 
-
-app.on('ready', async () => {
+function createWindow() {
   const mainWindow = new BrowserWindow({
     webPreferences: {
       preload: getPreloadPath(),
     },
   });
-  // Pass server port to the renderer
-  // This line is crucial for communicating the port!
-  // (global as any).serverPort = serverPort;
 
   if (isDev()) {
     mainWindow.loadURL('http://localhost:5123');
@@ -22,9 +19,21 @@ app.on('ready', async () => {
 
   pollResources(mainWindow);
 
-});
+  return mainWindow;
+}
 
 app.on('will-quit', () => {
   console.log("Quitting..... ")
 });
+
+app.whenReady().then(() => {
+  const mainWindow = createWindow();
+  startIdleMonitoring(app, mainWindow);
+});
+
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit()
+})
+
+
 

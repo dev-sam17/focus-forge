@@ -17,6 +17,43 @@ export default function TimeTrackingDashboard() {
   >({});
   const [isOnline, setIsOnline] = useState(true);
   const [isBackendAvailable, setIsBackendAvailable] = useState(true);
+  const [userInactive, setUserInactive] = useState<boolean>(false);
+
+  useEffect(() => {
+    const unsubscribe = window.electron.subscribeUserInactive(setUserInactive);
+    return () => unsubscribe();
+  }, []);
+  
+ 
+
+  useEffect(() => {
+    if (userInactive) {
+      const stopAllSessions = async () => {
+        try {
+         if(Object.keys(activeSessions).length > 0) {
+           const sessionsToStop = { ...activeSessions };
+           setActiveSessions({});
+ 
+           await Promise.all(
+             Object.values(sessionsToStop).map(session => 
+               handleSessionEnd(session.trackerId)
+             )
+           );
+           window.location.reload();
+         }
+        } catch (error) {
+          console.error('Error stopping sessions:', error);
+          // Refresh states in case of error
+          await fetchActiveSessions();
+          await fetchTasks();
+        } finally {
+          setUserInactive(false);
+        }
+      };
+      
+      stopAllSessions();
+    }
+  }, [userInactive]);
 
   const api = useApiClient();
   const apiUrl = import.meta.env.VITE_API_URL;

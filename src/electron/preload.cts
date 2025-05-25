@@ -6,6 +6,16 @@ electron.contextBridge.exposeInMainWorld("electron", {
             callback(stats);
         });
     },
+    subscribeUserIdleTime: (callback) => {
+        return ipcOn('user-idle-time', (idleTime) => {
+            callback(idleTime);
+        });
+    },
+    subscribeUserInactive: (callback) => {
+        return ipcOn('user-inactive', (inactive) => {
+            callback(inactive);
+        });
+    },
     getStaticData: () => ipcInvoke('getStaticData'),
    
 } satisfies Window["electron"])
