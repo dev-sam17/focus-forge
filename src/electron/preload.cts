@@ -1,25 +1,27 @@
+/// <reference types="electron" />
+import type { EventPayloadMapping, Statistics, UnsubscribeFunction } from '../../types';
+
 const electron = require('electron');
 
 electron.contextBridge.exposeInMainWorld("electron", {
-    subscribeStatistics: (callback) => {
-        return ipcOn('statistics', (stats) => {
+    subscribeStatistics: (callback: (stats: Statistics) => void) => {
+        return ipcOn('statistics', (stats: Statistics) => {
             callback(stats);
         });
     },
-    subscribeUserIdleTime: (callback) => {
-        return ipcOn('user-idle-time', (idleTime) => {
+    subscribeUserIdleTime: (callback: (idleTime: number) => void) => {
+        return ipcOn('user-idle-time', (idleTime: number) => {
             callback(idleTime);
         });
     },
-    subscribeUserInactive: (callback) => {
-        return ipcOn('user-inactive', (inactive) => {
+    subscribeUserInactive: (callback: (inactive: boolean) => void) => {
+        return ipcOn('user-inactive', (inactive: boolean) => {
             callback(inactive);
         });
     },
     getStaticData: () => ipcInvoke('getStaticData'),
-   
-} satisfies Window["electron"])
-  
+} as Window['electron'])
+
 function ipcInvoke<Key extends keyof EventPayloadMapping>(
     key: Key,
     ...args: unknown[]
@@ -27,14 +29,11 @@ function ipcInvoke<Key extends keyof EventPayloadMapping>(
     return electron.ipcRenderer.invoke(key, ...args);
 }
 
-
 function ipcOn<Key extends keyof EventPayloadMapping>(
     key: Key,
     callback: (payload: EventPayloadMapping[Key]) => void
-) {
-    const cb = (_: Electron.IpcRendererEvent, payload: any) => callback(payload);
+): UnsubscribeFunction {
+    const cb = (_: Electron.IpcRendererEvent, payload: EventPayloadMapping[Key]) => callback(payload);
     electron.ipcRenderer.on(key, cb);
     return () => electron.ipcRenderer.off(key, cb);
 }
-
-

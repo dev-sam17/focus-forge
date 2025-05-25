@@ -1,15 +1,21 @@
 {
   "compilerOptions": {
-    "typeRoots": ["../types"],
-    // requires strict types (null save)
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "strict": true,
-    // tell Typescript to generate ESM syntax
-    "target": "ESNext",
-    // tell Typescript to require ESM syntax as input ( including .js file imports)
-    "module": "NodeNext",
-    // define where to put generated JS
-    "outDir": "../../dist-electron",
-    // ignore errors from dependencies
-    "skipLibCheck": true
-  }
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "outDir": "../../dist/electron",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../*"]
+    },
+    "types": ["electron", "node"],
+    "typeRoots": ["../../types", "../../node_modules/@types"]
+  },
+  "include": ["./**/*.ts", "./**/*.cts"],
+  "exclude": ["../../node_modules"]
 }
