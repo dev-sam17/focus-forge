@@ -6,7 +6,8 @@
         "dist-react"
     ],
     "extraResources": [
-        "dist-electron/preload.cjs"
+        "dist-electron/preload.cjs",
+        "app-icon.ico"
     ],
     "icon": "./app-icon.png",
     "mac": {
@@ -19,8 +20,6 @@
         "category": "Utility"
     },
     "win": {
-        "target": [
-            "msi"
-        ]
+        "target": "msi"
     }
 }

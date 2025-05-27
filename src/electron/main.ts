@@ -65,8 +65,19 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconPath = join(process.cwd(), "app-icon.png");
-  tray = new Tray(nativeImage.createFromPath(iconPath));
+  let iconPath;
+  if (isDev()) {
+    iconPath = join(process.cwd(), "app-icon.png");
+  } else {
+    // iconPath = join(app.getAppPath(), "..", 'app-icon.png');
+    iconPath = join(process.resourcesPath, 'app-icon.ico');
+  }
+  
+  const icon = nativeImage.createFromPath(iconPath);
+  if (icon.isEmpty()) {
+    console.error('Failed to load tray icon:', iconPath);
+  }
+  tray = new Tray(icon);
   tray.setToolTip('Time Tracker');
 
   const contextMenu = Menu.buildFromTemplate([
