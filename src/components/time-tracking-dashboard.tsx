@@ -1,5 +1,7 @@
 "use client";
 
+// Anime-styled Time Tracking Dashboard
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import TimeTracker from "./time-tracker";
@@ -9,8 +11,14 @@ import type { Tracker, ActiveSession, NewTracker } from "../lib/types";
 import AddTaskDialog from "./add-task";
 import useApiClient from "../hooks/useApiClient";
 import { Alert, AlertDescription } from "./ui/alert";
+import { DashboardSkeleton } from "./ui/skeleton";
+import { WifiOff, ServerOff, Plus, Archive, BarChart3 } from "lucide-react";
 
-export default function TimeTrackingDashboard() {
+interface TimeTrackingDashboardProps {
+  onBackendStatusChange?: (available: boolean) => void;
+}
+
+export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTrackingDashboardProps) {
   const [tasks, setTasks] = useState<Tracker[]>([]);
   const [activeSessions, setActiveSessions] = useState<
     Record<string, ActiveSession>
@@ -92,8 +100,10 @@ export default function TimeTrackingDashboard() {
     try {
       await fetch(`${apiUrl}/ping`)
       setIsBackendAvailable(true);
+      onBackendStatusChange?.(true);
     } catch {
       setIsBackendAvailable(false);
+      onBackendStatusChange?.(false);
     }
   };
 
@@ -165,69 +175,131 @@ export default function TimeTrackingDashboard() {
   const activeTasks = tasks.filter((task) => !task.archived);
   const archivedTasks = tasks.filter((task) => task.archived);
 
-  return (
-    <div className="space-y-6 min-h-[calc(100vh-12rem)]">
-      {!isOnline && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            No internet connection. Please check your network connection.
-          </AlertDescription>
-        </Alert>
-      )}
-      {isOnline && !isBackendAvailable && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            Cannot connect to server. Please try again later.
-          </AlertDescription>
-        </Alert>
-      )}
-      {isOnline && isBackendAvailable && (
-        <Tabs defaultValue="trackers" className="w-full">
-          <TabsList className="mb-4 bg-white dark:bg-gray-800 p-1 rounded-lg">
-            <TabsTrigger value="trackers">Trackers</TabsTrigger>
-            <TabsTrigger value="archives">Archives</TabsTrigger>
-            {/* <TabsTrigger value="statistics">Statistics</TabsTrigger> */}
-          </TabsList>
+  // Show loading state
+  if (!isOnline || !isBackendAvailable) {
+    return (
+      <div className="space-y-6 min-h-[calc(100vh-12rem)] anime-slide-up">
+        {/* Connection Status */}
+        <div className="flex justify-center">
+          <Alert variant="destructive" className="glass border-destructive/20 bg-destructive/5 max-w-md">
+            <div className="flex items-center gap-2">
+              {!isOnline ? (
+                <WifiOff className="h-4 w-4" />
+              ) : (
+                <ServerOff className="h-4 w-4" />
+              )}
+              <AlertDescription className="font-medium">
+                {!isOnline 
+                  ? "No internet connection. Please check your network." 
+                  : "Cannot connect to server. Please try again later."}
+              </AlertDescription>
+            </div>
+          </Alert>
+        </div>
+        
+        {/* Loading skeleton */}
+        <DashboardSkeleton />
+      </div>
+    );
+  }
 
-          <TabsContent value="trackers" className="space-y-6">
-            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr">
-              {activeTasks.map((task) => (
-                <TimeTracker
-                  key={task.id}
-                  task={task}
-                  session={activeSessions[task.id]}
-                  onStart={() => handleSessionStart(task.id)}
-                  onStop={() => handleSessionEnd(task.id)}
-                  onArchive={handleArchiveTask}
-                />
+  return (
+    <div className="space-y-8 min-h-[calc(100vh-12rem)]">
+
+      <Tabs defaultValue="trackers" className="w-full anime-slide-up">
+        <div className="flex items-center justify-between mb-8">
+          <TabsList className="glass bg-card/50 backdrop-blur-sm border-0 p-1 rounded-2xl shadow-lg">
+            <TabsTrigger 
+              value="trackers" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Active Trackers
+            </TabsTrigger>
+            <TabsTrigger 
+              value="archives" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+            >
+              <Archive className="w-4 h-4" />
+              Archives
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Add Task Dialog in Tab Row */}
+          <AddTaskDialog onAddTask={handleAddTask} />
+        </div>
+
+        <TabsContent value="trackers" className="space-y-8 anime-slide-up">
+          {/* Active Trackers Grid */}
+          {activeTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
+              <div className="glass rounded-2xl p-8 text-center space-y-4 max-w-md">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center mx-auto anime-float">
+                  <Plus className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold gradient-text mb-2">No Active Trackers</h3>
+                  <p className="text-muted-foreground">Create your first time tracker to get started!</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 auto-rows-fr">
+              {activeTasks.map((task, index) => (
+                <div 
+                  key={task.id} 
+                  className="anime-slide-up" 
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <TimeTracker
+                    task={task}
+                    session={activeSessions[task.id]}
+                    onStart={() => handleSessionStart(task.id)}
+                    onStop={() => handleSessionEnd(task.id)}
+                    onArchive={handleArchiveTask}
+                  />
+                </div>
               ))}
             </div>
-            <AddTaskDialog onAddTask={handleAddTask} />
-          </TabsContent>
+          )}
+          
+        </TabsContent>
 
-          <TabsContent value="archives" className="space-y-6">
-            {archivedTasks.length === 0 ? (
-              <div className="flex items-center justify-center min-h-[50vh] text-gray-500">
-                No archived trackers found
+        <TabsContent value="archives" className="space-y-8 anime-slide-up">
+          {archivedTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+              <div className="glass rounded-2xl p-8 text-center space-y-4 max-w-md">
+                <div className="w-16 h-16 bg-gradient-to-r from-muted to-muted-foreground/20 rounded-2xl flex items-center justify-center mx-auto">
+                  <Archive className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-muted-foreground mb-2">No Archived Trackers</h3>
+                  <p className="text-muted-foreground/70">Archived trackers will appear here when you archive them.</p>
+                </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
-                {archivedTasks.map((task) => (
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+              {archivedTasks.map((task, index) => (
+                <div 
+                  key={task.id} 
+                  className="anime-slide-up" 
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <ArchivedTracker
-                    key={task.id}
                     task={task}
                     onDelete={handleDeleteTask}
                   />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-          {/* <TabsContent value="statistics">
-            <StatisticsView tasks={tasks} />
-          </TabsContent> */}
-        </Tabs>
-      )}
+        {/* <TabsContent value="statistics" className="anime-slide-up">
+          <StatisticsView tasks={tasks} />
+        </TabsContent> */}
+      </Tabs>
     </div>
   );
 }
