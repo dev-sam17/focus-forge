@@ -12,7 +12,14 @@ import AddTaskDialog from "./add-task";
 import useApiClient from "../hooks/useApiClient";
 import { Alert, AlertDescription } from "./ui/alert";
 import { DashboardSkeleton } from "./ui/skeleton";
-import { WifiOff, ServerOff, Plus, Archive, BarChart3 } from "lucide-react";
+import {
+  WifiOff,
+  ServerOff,
+  Plus,
+  Archive,
+  BarChart3,
+  RefreshCw,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 interface TimeTrackingDashboardProps {
@@ -228,8 +235,19 @@ export default function TimeTrackingDashboard({
             </TabsTrigger>
           </TabsList>
 
-          {/* Add Task Dialog in Tab Row */}
-          <AddTaskDialog onAddTask={handleAddTask} />
+          <div className="flex items-center gap-3">
+            {/* Refresh Button */}
+            <button
+              onClick={() => window.location.reload()}
+              className="w-10 h-10 glass bg-card/50 hover:bg-card/80 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 group border border-border/30"
+              title="Refresh"
+            >
+              <RefreshCw className="w-4 h-4 text-muted-foreground group-hover:text-foreground group-hover:rotate-180 transition-all duration-500" />
+            </button>
+
+            {/* Add Task Dialog in Tab Row */}
+            <AddTaskDialog onAddTask={handleAddTask} />
+          </div>
         </div>
 
         <TabsContent value="trackers" className="space-y-8 anime-slide-up">

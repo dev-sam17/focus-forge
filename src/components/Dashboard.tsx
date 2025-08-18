@@ -1,7 +1,7 @@
 import TimeTrackingDashboard from "./time-tracking-dashboard"
 import { useState, useEffect } from "react"
 import { DashboardSkeleton } from "./ui/skeleton"
-import { RefreshCw, Clock, Sparkles } from "lucide-react"
+import { Clock, Sparkles } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { Button } from "./ui/button"
 
@@ -20,13 +20,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  const handleRefresh = () => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      window.location.reload()
-    }, 500)
-  }
 
 
   const handleSignOut = async () => {
@@ -104,14 +97,6 @@ export default function Dashboard() {
               </Button>
             </div>
             
-            {/* Refresh Button */}
-            <button
-              onClick={handleRefresh}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 group"
-            >
-              <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-              Refresh
-            </button>
           </div>
           
           <TimeTrackingDashboard />
