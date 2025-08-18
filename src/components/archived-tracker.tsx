@@ -2,6 +2,7 @@
 
 // Anime-styled Archived Tracker Component
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,6 +12,15 @@ import {
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import { Clock, Trash2, Archive } from "lucide-react";
 import type { Tracker } from "../lib/types";
 
@@ -23,10 +33,11 @@ export default function ArchivedTracker({
   task,
   onDelete,
 }: ArchivedTrackerProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const handleDelete = () => {
-    if (confirm("Are you sure you want to permanently delete this tracker?")) {
-      onDelete(task.id);
-    }
+    onDelete(task.id);
+    setIsDeleteDialogOpen(false);
   };
 
   return (
@@ -72,15 +83,56 @@ export default function ArchivedTracker({
         </CardContent>
 
         <CardFooter className="p-4 pt-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDelete}
-            className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 transition-all duration-300 group/btn"
-          >
-            <Trash2 className="h-4 w-4 mr-2 group-hover/btn:animate-pulse" /> 
-            Delete Permanently
-          </Button>
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 transition-all duration-300 group/btn"
+              >
+                <Trash2 className="h-4 w-4 mr-2 group-hover/btn:animate-pulse" /> 
+                Delete Permanently
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-md mx-auto">
+              <DialogHeader className="bg-gradient-to-r from-destructive/20 to-destructive/10 -m-6 mb-6 p-6 rounded-t-lg border-b border-border/30">
+                <DialogTitle className="flex items-center gap-3 text-xl font-semibold text-foreground">
+                  <div className="glass rounded-lg p-2 bg-destructive/20">
+                    <Trash2 className="w-5 h-5 text-destructive" />
+                  </div>
+                  Delete Tracker
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground mt-2">
+                  This action cannot be undone. This will permanently delete the tracker and all its data.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="glass rounded-lg p-4 bg-muted/10 border border-border/20">
+                  <h4 className="font-medium text-foreground mb-1">{task.trackerName}</h4>
+                  <p className="text-sm text-muted-foreground">{task.description}</p>
+                </div>
+              </div>
+              
+              <DialogFooter className="gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  className="glass border-border/30 hover:bg-muted/20"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70 shadow-lg"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Permanently
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardFooter>
         
       </div>

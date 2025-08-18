@@ -13,12 +13,15 @@ import useApiClient from "../hooks/useApiClient";
 import { Alert, AlertDescription } from "./ui/alert";
 import { DashboardSkeleton } from "./ui/skeleton";
 import { WifiOff, ServerOff, Plus, Archive, BarChart3 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface TimeTrackingDashboardProps {
   onBackendStatusChange?: (available: boolean) => void;
 }
 
-export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTrackingDashboardProps) {
+export default function TimeTrackingDashboard({
+  onBackendStatusChange,
+}: TimeTrackingDashboardProps) {
   const [tasks, setTasks] = useState<Tracker[]>([]);
   const [activeSessions, setActiveSessions] = useState<
     Record<string, ActiveSession>
@@ -26,31 +29,30 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
   const [isOnline, setIsOnline] = useState(true);
   const [isBackendAvailable, setIsBackendAvailable] = useState(true);
   const [userInactive, setUserInactive] = useState<boolean>(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const unsubscribe = window.electron.subscribeUserInactive(setUserInactive);
     return () => unsubscribe();
   }, []);
-  
- 
 
   useEffect(() => {
     if (userInactive) {
       const stopAllSessions = async () => {
         try {
-         if(Object.keys(activeSessions).length > 0) {
-           const sessionsToStop = { ...activeSessions };
-           setActiveSessions({});
- 
-           await Promise.all(
-             Object.values(sessionsToStop).map(session => 
-               handleSessionEnd(session.trackerId)
-             )
-           );
-           window.location.reload();
-         }
+          if (Object.keys(activeSessions).length > 0) {
+            const sessionsToStop = { ...activeSessions };
+            setActiveSessions({});
+
+            await Promise.all(
+              Object.values(sessionsToStop).map((session) =>
+                handleSessionEnd(session.trackerId)
+              )
+            );
+            window.location.reload();
+          }
         } catch (error) {
-          console.error('Error stopping sessions:', error);
+          console.error("Error stopping sessions:", error);
           // Refresh states in case of error
           await fetchActiveSessions();
           await fetchTasks();
@@ -58,7 +60,7 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
           setUserInactive(false);
         }
       };
-      
+
       stopAllSessions();
     }
   }, [userInactive]);
@@ -67,7 +69,7 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const fetchTasks = async () => {
-    const res = await api<Tracker[]>("/trackers");
+    const res = await api<Tracker[]>(`/trackers?userId=${user?.id}`);
     if (res.success && res.data) {
       setTasks(res.data);
     }
@@ -87,7 +89,7 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
 
   const checkConnectivity = async () => {
     try {
-      await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
+      await fetch("https://www.google.com/favicon.ico", { mode: "no-cors" });
       setIsOnline(true);
     } catch {
       setIsOnline(false);
@@ -96,7 +98,7 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
 
   const checkBackendHealth = async () => {
     try {
-      await fetch(`${apiUrl}/ping`)
+      await fetch(`${apiUrl}/ping`);
       setIsBackendAvailable(true);
       onBackendStatusChange?.(true);
     } catch {
@@ -127,6 +129,7 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
   }, [isOnline, isBackendAvailable]);
 
   const handleAddTask = async (newTask: NewTracker) => {
+    console.log({ newTask });
     const res = await api<Tracker>("/trackers", "POST", newTask);
 
     if (res.success) {
@@ -179,7 +182,10 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
       <div className="space-y-6 min-h-[calc(100vh-12rem)] anime-slide-up">
         {/* Connection Status */}
         <div className="flex justify-center">
-          <Alert variant="destructive" className="glass border-destructive/20 bg-destructive/5 max-w-md">
+          <Alert
+            variant="destructive"
+            className="glass border-destructive/20 bg-destructive/5 max-w-md"
+          >
             <div className="flex items-center gap-2">
               {!isOnline ? (
                 <WifiOff className="h-4 w-4" />
@@ -187,14 +193,14 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
                 <ServerOff className="h-4 w-4" />
               )}
               <AlertDescription className="font-medium">
-                {!isOnline 
-                  ? "No internet connection. Please check your network." 
+                {!isOnline
+                  ? "No internet connection. Please check your network."
                   : "Cannot connect to server. Please try again later."}
               </AlertDescription>
             </div>
           </Alert>
         </div>
-        
+
         {/* Loading skeleton */}
         <DashboardSkeleton />
       </div>
@@ -203,26 +209,25 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
 
   return (
     <div className="space-y-8 min-h-[calc(100vh-12rem)]">
-
       <Tabs defaultValue="trackers" className="w-full anime-slide-up">
         <div className="flex items-center justify-between mb-8">
           <TabsList className="glass bg-card/50 backdrop-blur-sm border-0 p-1 rounded-2xl shadow-lg">
-            <TabsTrigger 
-              value="trackers" 
+            <TabsTrigger
+              value="trackers"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
             >
               <BarChart3 className="w-4 h-4" />
               Active Trackers
             </TabsTrigger>
-            <TabsTrigger 
-              value="archives" 
+            <TabsTrigger
+              value="archives"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
             >
               <Archive className="w-4 h-4" />
               Archives
             </TabsTrigger>
           </TabsList>
-          
+
           {/* Add Task Dialog in Tab Row */}
           <AddTaskDialog onAddTask={handleAddTask} />
         </div>
@@ -236,17 +241,21 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
                   <Plus className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold gradient-text mb-2">No Active Trackers</h3>
-                  <p className="text-muted-foreground">Create your first time tracker to get started!</p>
+                  <h3 className="text-xl font-semibold gradient-text mb-2">
+                    No Active Trackers
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Create your first time tracker to get started!
+                  </p>
                 </div>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 auto-rows-fr">
               {activeTasks.map((task, index) => (
-                <div 
-                  key={task.id} 
-                  className="anime-slide-up" 
+                <div
+                  key={task.id}
+                  className="anime-slide-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <TimeTracker
@@ -260,7 +269,6 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
               ))}
             </div>
           )}
-          
         </TabsContent>
 
         <TabsContent value="archives" className="space-y-8 anime-slide-up">
@@ -271,23 +279,24 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
                   <Archive className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-muted-foreground mb-2">No Archived Trackers</h3>
-                  <p className="text-muted-foreground/70">Archived trackers will appear here when you archive them.</p>
+                  <h3 className="text-xl font-semibold text-muted-foreground mb-2">
+                    No Archived Trackers
+                  </h3>
+                  <p className="text-muted-foreground/70">
+                    Archived trackers will appear here when you archive them.
+                  </p>
                 </div>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
               {archivedTasks.map((task, index) => (
-                <div 
-                  key={task.id} 
-                  className="anime-slide-up" 
+                <div
+                  key={task.id}
+                  className="anime-slide-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <ArchivedTracker
-                    task={task}
-                    onDelete={handleDeleteTask}
-                  />
+                  <ArchivedTracker task={task} onDelete={handleDeleteTask} />
                 </div>
               ))}
             </div>
