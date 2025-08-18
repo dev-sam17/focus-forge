@@ -35,10 +35,10 @@ export type TrackerReturnType = {
 declare global {
     interface Window {
         electron: {
-            subscribeStatistics: (callback: (statistics: Statistics) => void) => UnsubscribeFunction;
-            getStaticData: () => Promise<StaticData>;
+            subscribeStatistics: (callback: (stats: Statistics) => void) => UnsubscribeFunction;
             subscribeUserIdleTime: (callback: (idleTime: number) => void) => UnsubscribeFunction;
             subscribeUserInactive: (callback: (inactive: boolean) => void) => UnsubscribeFunction;
+            getStaticData: () => Promise<StaticData>;
         };
     }
 }
