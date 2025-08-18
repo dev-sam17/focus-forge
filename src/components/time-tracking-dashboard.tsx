@@ -68,7 +68,6 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
 
   const fetchTasks = async () => {
     const res = await api<Tracker[]>("/trackers");
-    console.log(res);
     if (res.success && res.data) {
       setTasks(res.data);
     }
@@ -76,7 +75,6 @@ export default function TimeTrackingDashboard({ onBackendStatusChange }: TimeTra
 
   const fetchActiveSessions = async () => {
     const res = await api<ActiveSession[]>("/sessions/active");
-    console.log(res);
     if (res.success && res.data) {
       setActiveSessions(
         res.data.reduce((acc, session) => {

@@ -40,7 +40,6 @@ export default function TimeTracker({
     workDebt: 0,
   });
 
-  // @ts-expect-error errors here
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const api = useApiClient();
 
@@ -55,7 +54,6 @@ export default function TimeTracker({
 
   const fetchWorkStats = async () => {
     const res = await api<WorkStats>(`/trackers/${task.id}/stats`);
-    console.log(res)
     // @ts-expect-error errors here
     setWorkStats(res.data);
   };

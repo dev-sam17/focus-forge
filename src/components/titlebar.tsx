@@ -1,12 +1,14 @@
-import { Clock, Sparkles, Sun, Moon, Wifi, WifiOff, Server, ServerOff } from "lucide-react"
+import { Clock, Sparkles, Sun, Moon, Wifi, WifiOff, Server, ServerOff, ArrowLeft } from "lucide-react"
 import { useTheme } from "../contexts/ThemeContext"
 
 interface TitleBarProps {
   isOnline?: boolean;
   isBackendAvailable?: boolean;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
-export default function TitleBar({ isOnline = true, isBackendAvailable = true }: TitleBarProps) {
+export default function TitleBar({ isOnline = true, isBackendAvailable = true, showBackButton = false, onBackClick }: TitleBarProps) {
     const { theme, toggleTheme } = useTheme();
     
     return (
@@ -14,13 +16,23 @@ export default function TitleBar({ isOnline = true, isBackendAvailable = true }:
             className="bg-gradient-to-r from-primary/90 to-accent/90 backdrop-blur-sm h-[30px] text-white font-medium fixed top-0 left-0 right-0 z-50 flex items-center justify-between shadow-lg border-b border-white/10"
             style={{ '-webkit-app-region': 'drag' }}
         >
-            {/* Left side - App branding */}
+            {/* Left side - Back button and App branding */}
             <div className="flex items-center gap-2 ml-3">
+                {showBackButton && (
+                    <button
+                        onClick={onBackClick}
+                        className="w-5 h-5 bg-white/20 hover:bg-white/30 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-105 mr-1"
+                        style={{ '-webkit-app-region': 'no-drag' }}
+                        aria-label="Go back"
+                    >
+                        <ArrowLeft className="w-3 h-3" />
+                    </button>
+                )}
                 <div className="w-5 h-5 bg-white/20 rounded-md flex items-center justify-center">
                     <Clock className="w-3 h-3" />
                 </div>
                 <span className="text-sm font-semibold tracking-wide flex items-center gap-1">
-                    Time Tracker
+                    Focus Forge
                     <Sparkles className="w-3 h-3 opacity-70" />
                 </span>
             </div>
