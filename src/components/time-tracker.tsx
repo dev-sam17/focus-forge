@@ -12,7 +12,16 @@ import {
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Play, Square, Clock, Archive, Disc, Target, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  Play,
+  Square,
+  Clock,
+  Archive,
+  Disc,
+  Target,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 import type { Tracker, ActiveSession, WorkStats } from "../lib/types";
 import { formatTime } from "../lib/utils";
 import useApiClient from "../hooks/useApiClient";
@@ -33,7 +42,7 @@ export default function TimeTracker({
   onArchive,
 }: TimeTrackerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
-  
+
   const [isRunning, setIsRunning] = useState(false);
   const [workStats, setWorkStats] = useState<WorkStats>({
     workAdvance: 0,
@@ -64,7 +73,7 @@ export default function TimeTracker({
 
     const interval = setInterval(fetchWorkStats, 60000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task.id]);
 
   // Timer logic
@@ -84,7 +93,7 @@ export default function TimeTracker({
         clearInterval(intervalRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning]);
 
   const handleStart = () => {
@@ -112,23 +121,28 @@ export default function TimeTracker({
   };
 
   return (
-    <Card className="anime-card glass border-0 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-all duration-300 group overflow-hidden">
+    <Card className="anime-card glass border-0 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-all duration-300 group overflow-hidden h-[400px]">
       {/* Gradient border effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="relative bg-card rounded-xl m-px">
-        
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 p-4 border-b border-border/50">
+      <div className="relative bg-card rounded-xl m-px h-full flex flex-col">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 p-3 border-b border-border/50 flex-shrink-0">
           <div className="flex justify-between items-start">
-            <div className="space-y-1">
-              <CardTitle className="text-lg font-semibold gradient-text">{task.trackerName}</CardTitle>
-              <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
+            <div className="space-y-1 min-w-0 flex-1">
+              <CardTitle className="text-base font-semibold gradient-text truncate">
+                {task.trackerName}
+              </CardTitle>
+              <div className="h-4">
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  {task.description || ""}
+                </p>
+              </div>
             </div>
-            <Badge 
-              variant={isRunning ? "default" : "outline"} 
+            <Badge
+              variant={isRunning ? "default" : "outline"}
               className={`text-xs font-medium ${
-                isRunning 
-                  ? 'bg-gradient-to-r from-success to-success/80 text-white anime-glow border-0' 
-                  : 'border-border/50'
+                isRunning
+                  ? "bg-gradient-to-r from-success to-success/80 text-white anime-glow border-0"
+                  : "border-border/50"
               }`}
             >
               {isRunning ? (
@@ -137,71 +151,80 @@ export default function TimeTracker({
                   Active
                 </>
               ) : (
-                'Inactive'
+                "Inactive"
               )}
             </Badge>
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 space-y-4">
-          {/* Timer Display */}
-          <div className="text-center space-y-2">
-            <div className="relative">
-              <div className={`text-3xl font-mono font-bold flex items-center justify-center ${
-                isRunning ? 'text-primary anime-glow' : 'text-foreground'
-              }`}>
-                <Clock className="mr-2 h-6 w-6" />
-                {formatTime(elapsedTime)}
-              </div>
-              {isRunning && (
-                <div className="absolute inset-0 bg-primary/10 rounded-lg blur-xl animate-pulse" />
-              )}
-            </div>
-            
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Target className="w-4 h-4" />
-              <span>Daily Goal: <span className="font-semibold text-foreground">{task.targetHours}h</span></span>
-            </div>
-          </div>
-
-          {/* Work Days */}
-          <div className="flex justify-center gap-1">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => {
-              const workDaysArray = task.workDays.split(',').map(Number);
-              const isActive = workDaysArray.includes(index);
-              return (
+        <CardContent className="p-3 flex-1 flex flex-col">
+          <div className="space-y-3 flex-1">
+            {/* Timer Display */}
+            <div className="text-center space-y-1">
+              <div className="relative">
                 <div
-                  key={index}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg'
-                      : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  className={`text-2xl font-mono font-bold flex items-center justify-center ${
+                    isRunning ? "text-primary anime-glow" : "text-foreground"
                   }`}
                 >
-                  {day}
+                  <Clock className="mr-1 h-4 w-4" />
+                  {formatTime(elapsedTime)}
                 </div>
-              );
-            })}
+                {isRunning && (
+                  <div className="absolute inset-0 bg-primary/10 rounded-lg blur-xl animate-pulse" />
+                )}
+              </div>
+
+              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                <Target className="w-3 h-3" />
+                <span>
+                  Goal:{" "}
+                  <span className="font-semibold text-foreground">
+                    {task.targetHours}h
+                  </span>
+                </span>
+              </div>
+            </div>
+
+            {/* Work Days */}
+            <div className="flex justify-center gap-1">
+              {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => {
+                const workDaysArray = task.workDays.split(",").map(Number);
+                const isActive = workDaysArray.includes(index);
+                return (
+                  <div
+                    key={index}
+                    className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-gradient-to-r from-primary to-accent text-white shadow-sm"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Work Stats */}
+          {/* Work Stats - Always at bottom */}
           {workStats && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="glass rounded-lg p-3 text-center space-y-1 border border-destructive/20">
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <div className="glass rounded-md p-2 text-center space-y-1 border border-destructive/20">
                 <div className="flex items-center justify-center gap-1 text-destructive">
                   <TrendingDown className="w-3 h-3" />
                   <span className="text-xs font-medium">Debt</span>
                 </div>
-                <div className="text-lg font-bold text-destructive">
+                <div className="text-sm font-bold text-destructive">
                   {workStats.workDebt}h
                 </div>
               </div>
-              <div className="glass rounded-lg p-3 text-center space-y-1 border border-success/20">
+              <div className="glass rounded-md p-2 text-center space-y-1 border border-success/20">
                 <div className="flex items-center justify-center gap-1 text-success">
                   <TrendingUp className="w-3 h-3" />
                   <span className="text-xs font-medium">Advance</span>
                 </div>
-                <div className="text-lg font-bold text-success">
+                <div className="text-sm font-bold text-success">
                   {workStats.workAdvance}h
                 </div>
               </div>
@@ -209,57 +232,55 @@ export default function TimeTracker({
           )}
         </CardContent>
 
-        <CardFooter className="p-4 pt-0 space-y-3">
+        <CardFooter className="p-3 pt-0 space-y-2 flex-shrink-0">
           {/* Primary Actions */}
           <div className="flex gap-2 w-full">
             <Button
               variant={isRunning ? "outline" : "default"}
               size="sm"
               onClick={handleStart}
-              className={`flex-1 h-10 font-medium transition-all duration-300 ${
-                isRunning 
-                  ? 'border-primary/50 text-primary hover:bg-primary/10' 
-                  : 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl hover:shadow-primary/25'
+              className={`flex-1 h-8 font-medium transition-all duration-300 text-xs ${
+                isRunning
+                  ? "border-primary/50 text-primary hover:bg-primary/10"
+                  : "bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl hover:shadow-primary/25"
               }`}
               disabled={isRunning}
             >
               {isRunning ? (
                 <>
-                  <Disc className="h-4 w-4 mr-2 animate-spin" /> 
+                  <Disc className="h-3 w-3 mr-1 animate-spin" />
                   Running
                 </>
               ) : (
                 <>
-                  <Play className="h-4 w-4 mr-2" /> 
-                  Start Timer
+                  <Play className="h-3 w-3 mr-1" />
+                  Start
                 </>
               )}
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={handleStop}
-              className="flex-1 h-10 font-medium border-destructive/50 text-destructive hover:bg-destructive/10 transition-all duration-300"
+              className="flex-1 h-8 font-medium border-destructive/50 text-destructive hover:bg-destructive/10 transition-all duration-300 text-xs"
               disabled={elapsedTime === 0}
             >
-              <Square className="h-4 w-4 mr-2" /> 
+              <Square className="h-3 w-3 mr-1" />
               Stop
             </Button>
           </div>
-          
+
           {/* Archive Action */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleArchive}
-            className="w-full h-9 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300"
+            className=" h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 text-xs min-h-[32px]"
           >
-            <Archive className="h-4 w-4 mr-2" /> 
-            Archive Tracker
+            <Archive className="h-3 w-3 mr-1" />
           </Button>
         </CardFooter>
-        
       </div>
     </Card>
   );
