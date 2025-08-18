@@ -37,7 +37,6 @@ export function startIdleMonitoring(
     if (isTracking) return;
     isTracking = true;
 
-    console.log('[Activity Monitor] Starting idle time monitoring');
     checkIdleTime(); // Initial check
     intervalId = setInterval(checkIdleTime, checkIntervalMs);
 
@@ -64,7 +63,6 @@ export function startIdleMonitoring(
     
     isTracking = false;
     intervalId = null;
-    console.log('[Activity Monitor] Stopped monitoring');
   }
 
   start();
