@@ -35,30 +35,30 @@ export default function TitleBar({ isOnline = true, isBackendAvailable = true, s
                     Focus Forge
                     <Sparkles className="w-3 h-3 opacity-70" />
                 </span>
-            </div>
-            
-            {/* Right side - Status and controls */}
-            <div className="flex items-center gap-2 mr-3" style={{ '-webkit-app-region': 'no-drag' }}>
-                {/* Connection Status */}
-                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 backdrop-blur-sm">
+                
+                {/* Connection Status - moved to left side */}
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-white/30 ml-4">
                     {isOnline && isBackendAvailable ? (
                         <>
-                            <Wifi className="h-3 w-3 text-green-300" />
-                            <Server className="h-3 w-3 text-green-300" />
-                            <div className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse" />
+                            <Wifi className="h-3 w-3 text-emerald-400" />
+                            <Server className="h-3 w-3 text-emerald-400" />
+                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-sm shadow-emerald-400/50" />
                         </>
                     ) : (
                         <>
                             {!isOnline ? (
-                                <WifiOff className="h-3 w-3 text-red-300" />
+                                <WifiOff className="h-3 w-3 text-red-400" />
                             ) : (
-                                <ServerOff className="h-3 w-3 text-red-300" />
+                                <ServerOff className="h-3 w-3 text-red-400" />
                             )}
-                            <div className="w-1.5 h-1.5 bg-red-300 rounded-full" />
+                            <div className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse shadow-sm shadow-red-400/50" />
                         </>
                     )}
                 </div>
-                
+            </div>
+            
+            {/* Right side - Theme toggle only (avoiding window controls) */}
+            <div className="flex items-center gap-2 mr-16" style={{ '-webkit-app-region': 'no-drag' }}>
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}

@@ -37,7 +37,12 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <TitleBar isOnline={isOnline} isBackendAvailable={isBackendAvailable} />
+      <TitleBar 
+        isOnline={isOnline} 
+        isBackendAvailable={isBackendAvailable}
+        showBackButton={true}
+        onBackClick={() => window.history.back()}
+      />
       <ProtectedRoute>
         <Dashboard />
       </ProtectedRoute>
