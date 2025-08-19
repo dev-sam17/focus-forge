@@ -217,7 +217,7 @@ export default function TimeTrackingDashboard({
   return (
     <div className="space-y-8 min-h-[calc(100vh-12rem)]">
       <Tabs defaultValue="trackers" className="w-full anime-slide-up">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-2">
           <TabsList className="glass bg-card/50 backdrop-blur-sm border-0 p-1 rounded-2xl shadow-lg">
             <TabsTrigger
               value="trackers"
