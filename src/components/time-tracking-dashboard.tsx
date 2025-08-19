@@ -10,8 +10,6 @@ import ArchivedTracker from "./archived-tracker";
 import type { Tracker, ActiveSession, NewTracker } from "../lib/types";
 import AddTaskDialog from "./add-task";
 import useApiClient from "../hooks/useApiClient";
-import { Alert, AlertDescription } from "./ui/alert";
-import { DashboardSkeleton } from "./ui/skeleton";
 import {
   WifiOff,
   ServerOff,
@@ -189,27 +187,42 @@ export default function TimeTrackingDashboard({
       <div className="space-y-6 min-h-[calc(100vh-12rem)] anime-slide-up">
         {/* Connection Status */}
         <div className="flex justify-center">
-          <Alert
-            variant="destructive"
-            className="glass border-destructive/20 bg-destructive/5 max-w-md"
-          >
-            <div className="flex items-center gap-2">
-              {!isOnline ? (
-                <WifiOff className="h-4 w-4" />
-              ) : (
-                <ServerOff className="h-4 w-4" />
-              )}
-              <AlertDescription className="font-medium">
-                {!isOnline
-                  ? "No internet connection. Please check your network."
-                  : "Cannot connect to server. Please try again later."}
-              </AlertDescription>
-            </div>
-          </Alert>
-        </div>
+          <div className="glass border border-destructive/30 bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent rounded-xl p-6 max-w-md shadow-lg anime-scale-in">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Icon with animated glow */}
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-full flex items-center justify-center border border-destructive/30">
+                  {!isOnline ? (
+                    <WifiOff className="h-6 w-6 text-destructive animate-pulse" />
+                  ) : (
+                    <ServerOff className="h-6 w-6 text-destructive animate-pulse" />
+                  )}
+                </div>
+                <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl animate-pulse" />
+              </div>
 
-        {/* Loading skeleton */}
-        <DashboardSkeleton />
+              {/* Title */}
+              <h3 className="text-lg font-semibold text-destructive">
+                {!isOnline ? "Connection Lost" : "Server Unavailable"}
+              </h3>
+
+              {/* Description */}
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {!isOnline
+                  ? "Unable to connect to the internet. Please check your network connection and try again."
+                  : "Cannot reach the server at this time. The service may be temporarily unavailable."}
+              </p>
+
+              {/* Status indicator */}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 rounded-full border border-destructive/20">
+                <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-destructive">
+                  {!isOnline ? "Offline" : "Disconnected"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
