@@ -26,7 +26,7 @@ function createWindow() {
     frame: true,
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: "#1d293d",
+      color: "#ffffff00",
       symbolColor: "#ffffff",
       height: 30,
     },
@@ -43,7 +43,6 @@ function createWindow() {
   } else {
     mainWindow.loadFile(getUIPath());
   }
-
 
   // Create context menu
   mainWindow.webContents.on("context-menu", () => {
@@ -129,14 +128,13 @@ if (!gotTheLock) {
     mainWindow = createWindow();
     createTray();
     startIdleMonitoring(app, mainWindow);
-    
+
     // No protocol URL handling needed for in-app OAuth
   });
 }
 
 // Handle second instance - just focus the main window
 app.on("second-instance", (event, commandLine) => {
-
   // Someone tried to run a second instance, focus our window instead
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();

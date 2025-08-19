@@ -3,10 +3,10 @@ html {
   overflow-y: scroll;
 }
 
-/* Custom Scrollbar Styles */
+/* Custom Scrollbar Styles - Hidden */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 0px;
+  height: 0px;
   background-color: transparent;
 }
 
@@ -32,10 +32,9 @@ html {
   background-color: var(--background);
 }
 
-/* Firefox scrollbar */
+/* Firefox scrollbar - Hidden */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) var(--background);
+  scrollbar-width: none;
 }
 
 /* Dark mode adjustments */
