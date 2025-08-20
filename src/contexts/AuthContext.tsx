@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange((_, session) => {
       // Update state immediately without blocking
       setSession(session);
       setUser(session?.user ?? null);
@@ -68,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-
       // Use Supabase's built-in OAuth method in the same window
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -93,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithFacebook = async () => {
     try {
-
       // Use Supabase's built-in OAuth method in the same window
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
