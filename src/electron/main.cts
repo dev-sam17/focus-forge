@@ -1,18 +1,10 @@
-import {
-  app,
-  BrowserWindow,
-  Menu,
-  Tray,
-  shell,
-  ipcMain,
-  nativeImage,
-} from "electron";
+import { app, BrowserWindow, Menu, Tray, nativeImage } from "electron";
 import { join } from "node:path";
-import path from "node:path";
 import { startIdleMonitoring } from "./activityMonitor.cjs";
 import { isDev } from "./util.cjs";
 import { pollResources } from "./resourceManager.cjs";
 import { getPreloadPath, getUIPath } from "./pathResolver.cjs";
+import { setupAutoUpdater } from "./updater.cjs";
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -127,9 +119,10 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     mainWindow = createWindow();
     createTray();
+    if (app.isPackaged) {
+      setupAutoUpdater();
+    }
     startIdleMonitoring(app, mainWindow);
-
-    // No protocol URL handling needed for in-app OAuth
   });
 }
 
