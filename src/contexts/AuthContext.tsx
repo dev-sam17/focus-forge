@@ -255,8 +255,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      // Ensure we have the latest session state
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentSession = sessionData.session;
+
+      // If there's no session, just clear locally and return
+      if (!currentSession) {
+        await supabase.auth.signOut({ scope: 'local' });
+        if (typeof window !== 'undefined' && window.location.hash) window.location.hash = '';
+        return { error: null };
+      }
+
+      const isElectron = typeof window !== "undefined" && !!window.electron;
+
+      // Electron packaged apps can safely do local sign-out to avoid server 403s
+      if (isElectron) {
+        await supabase.auth.signOut({ scope: 'local' });
+        // Clear any OAuth hash remnants
+        if (window.location.hash) window.location.hash = '';
+        return { error: null };
+      }
+
+      // Web: attempt global sign-out first
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        type MaybeStatusError = AuthError & { status?: number };
+        const authErr = error as MaybeStatusError;
+        const msg = authErr.message || '';
+        const status = authErr.status;
+        // Fallback to local if server rejects due to missing/invalid session
+        if (status === 403 || msg.includes('session_not_found')) {
+          await supabase.auth.signOut({ scope: 'local' });
+          if (window.location.hash) window.location.hash = '';
+          return { error: null };
+        }
+        // Ensure local clear anyway as a fallback
+        await supabase.auth.signOut({ scope: 'local' });
+        if (window.location.hash) window.location.hash = '';
+        return { error: null };
+      }
+
+      if (window.location.hash) window.location.hash = '';
+      return { error: null };
+    } catch (error) {
+      console.error('Sign out error:', error);
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {
+        /* noop */
+      }
+      if (typeof window !== 'undefined' && window.location.hash) window.location.hash = '';
+      return { error: error as AuthError };
+    }
   };
 
   return (
