@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       // Update state immediately without blocking
       setSession(session);
       setUser(session?.user ?? null);
@@ -63,15 +63,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // No additional setup needed for in-app OAuth
-  }, []);
+    // Handle OAuth callback from Electron main process
+    if (typeof window !== 'undefined' && window.electron?.onOAuthCallback) {
+      window.electron.onOAuthCallback(async (url: string) => {
+        try {
+          // Extract the hash from the callback URL
+          const hashIndex = url.indexOf('#');
+          if (hashIndex !== -1) {
+            const hash = url.substring(hashIndex + 1);
+            // Set the hash in the current window for Supabase to process
+            window.location.hash = hash;
+            // Trigger session refresh
+            await supabase.auth.getSession();
+          }
+        } catch (error) {
+          console.error('OAuth callback error:', error);
+        }
+      });
+    }
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [api]);
 
   const signInWithGoogle = async () => {
     try {
-      // Use Supabase's built-in OAuth method in the same window
+      const redirectTo = typeof window !== 'undefined' && window.electron 
+        ? 'focus-forge://auth/callback'
+        : `${window.location.origin}/auth/callback`;
+        
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
+          redirectTo,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -81,21 +106,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error("OAuth error:", error);
+        return { error };
       }
 
       return { error: null };
     } catch (error) {
       console.error("Sign in error:", error);
-      return { error: null };
+      return { error: error as AuthError };
     }
   };
 
   const signInWithFacebook = async () => {
     try {
-      // Use Supabase's built-in OAuth method in the same window
+      const redirectTo = typeof window !== 'undefined' && window.electron 
+        ? 'focus-forge://auth/callback'
+        : `${window.location.origin}/auth/callback`;
+        
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
+          redirectTo,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -105,11 +135,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error("OAuth error:", error);
+        return { error };
       }
+      
       return { error: null };
     } catch (error) {
       console.error("Sign in error:", error);
-      return { error: null };
+      return { error: error as AuthError };
     }
   };
 

@@ -39,6 +39,7 @@ declare global {
             subscribeUserIdleTime: (callback: (idleTime: number) => void) => UnsubscribeFunction;
             subscribeUserInactive: (callback: (inactive: boolean) => void) => UnsubscribeFunction;
             getStaticData: () => Promise<StaticData>;
+            onOAuthCallback: (callback: (url: string) => void) => void;
         };
     }
 }

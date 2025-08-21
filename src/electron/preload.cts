@@ -47,6 +47,11 @@ const electronAPI = {
   getStaticData: () => {
     return ipcInvoke("getStaticData");
   },
+  onOAuthCallback: (callback: (url: string) => void) => {
+    electron.ipcRenderer.on('oauth-callback', (_: Electron.IpcRendererEvent, url: string) => {
+      callback(url);
+    });
+  },
 };
 
 

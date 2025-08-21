@@ -4,6 +4,12 @@
   "files": ["dist-electron", "dist-react"],
   "extraResources": ["dist-electron/preload.cjs", "app-icon.ico"],
   "icon": "./app-icon.png",
+  "protocols": [
+    {
+      "name": "focus-forge",
+      "schemes": ["focus-forge"]
+    }
+  ],
   "mac": {
     "target": "dmg"
   },

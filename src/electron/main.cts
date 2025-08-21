@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage } from "electron";
+import { app, BrowserWindow, Menu, Tray, nativeImage, shell } from "electron";
 import { join } from "node:path";
 import { startIdleMonitoring } from "./activityMonitor.cjs";
 import { isDev } from "./util.cjs";
@@ -108,7 +108,50 @@ app.on("will-quit", () => {
   // App is quitting
 });
 
-// Removed external URL handling - no longer needed for in-app OAuth
+// Handle OAuth redirects for production
+app.setAsDefaultProtocolClient('focus-forge');
+
+// Handle deep links for OAuth callbacks
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleOAuthCallback(url);
+});
+
+// Handle protocol on Windows/Linux
+app.on('second-instance', (event, commandLine) => {
+  // Handle OAuth callback from second instance
+  const url = commandLine.find(arg => arg.startsWith('focus-forge://'));
+  if (url) {
+    handleOAuthCallback(url);
+  }
+  
+  // Focus main window
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
+function handleOAuthCallback(url: string) {
+  if (mainWindow && (url.includes('access_token') || url.includes('code'))) {
+    // Send the callback URL to the renderer process
+    mainWindow.webContents.send('oauth-callback', url);
+    mainWindow.show();
+    mainWindow.focus();
+  }
+}
+
+// Handle external links
+app.on('web-contents-created', (event, contents) => {
+  contents.setWindowOpenHandler(({ url }) => {
+    // Handle OAuth URLs in external browser for better compatibility
+    if (url.includes('accounts.google.com') || url.includes('facebook.com/login')) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+});
 
 // Single instance lock - prevent multiple app instances
 const gotTheLock = app.requestSingleInstanceLock();
@@ -126,14 +169,6 @@ if (!gotTheLock) {
   });
 }
 
-// Handle second instance - just focus the main window
-app.on("second-instance", (event, commandLine) => {
-  // Someone tried to run a second instance, focus our window instead
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
-});
 
 // Quit when all windows are closed, except on macOS
 app.on("window-all-closed", function () {
