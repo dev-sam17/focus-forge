@@ -78,31 +78,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Handle OAuth callback from Electron main process
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [api]);
+
+  // Dedicated OAuth callback listener (attach once to avoid leaks)
+  useEffect(() => {
     if (typeof window !== "undefined" && window.electron?.onOAuthCallback) {
-      window.electron.onOAuthCallback(async (url: string) => {
+      const unsubscribe = window.electron.onOAuthCallback(async (url: string) => {
         try {
           console.log("Processing OAuth callback:", url);
-          setLoading(true); // Set loading state during processing
+          setLoading(true);
 
-          // Handle both hash-based and code-based OAuth flows
           if (url.includes("#")) {
             // Hash-based flow (access_token)
             const hashIndex = url.indexOf("#");
             const hash = url.substring(hashIndex + 1);
-            
-            // Parse the hash parameters
             const params = new URLSearchParams(hash);
             const accessToken = params.get('access_token');
             const refreshToken = params.get('refresh_token');
-            
+
             if (accessToken) {
-              // Set the session directly with the tokens
               const { data } = await supabase.auth.setSession({
                 access_token: accessToken,
                 refresh_token: refreshToken || ''
               });
-              
               if (data.session) {
                 console.log("Successfully set session from hash");
                 setSession(data.session);
@@ -110,24 +111,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setLoading(false);
               }
             } else {
-              // Fallback to original method
               window.location.hash = hash;
               await supabase.auth.getSession();
             }
           } else if (url.includes("code=")) {
-            // Code-based flow - extract parameters and let Supabase handle
             const urlObj = new URL(url);
             const code = urlObj.searchParams.get("code");
-
             if (code) {
               console.log("Attempting to exchange code for session:", code);
               try {
-                // Use Supabase's session handling for the code exchange
                 const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                
                 if (error) {
                   console.error("Code exchange error:", error);
-                  // If code exchange fails, try to get existing session
                   const { data: sessionData } = await supabase.auth.getSession();
                   if (sessionData.session) {
                     console.log("Found existing session after failed code exchange");
@@ -136,16 +131,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   }
                 } else if (data.session) {
                   console.log("Successfully exchanged code for session");
-                  // Force a state update to trigger dashboard redirect
                   setSession(data.session);
                   setUser(data.session.user);
                   setLoading(false);
-                  
-                  // Ensure the session is persisted
                   await supabase.auth.getSession();
                 } else {
                   console.warn("Code exchange succeeded but no session returned");
-                  // Try to get session manually
                   const { data: sessionData } = await supabase.auth.getSession();
                   if (sessionData.session) {
                     setSession(sessionData.session);
@@ -154,7 +145,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
               } catch (exchangeError) {
                 console.error("Exception during code exchange:", exchangeError);
-                // Fallback: try to get any existing session
                 const { data: sessionData } = await supabase.auth.getSession();
                 if (sessionData.session) {
                   console.log("Fallback: found existing session");
@@ -164,19 +154,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
           }
-          
-          setLoading(false); // Ensure loading is cleared
+
+          setLoading(false);
         } catch (error) {
           console.error("OAuth callback error:", error);
           setLoading(false);
         }
       });
-    }
 
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [api]);
+      return () => {
+        unsubscribe?.();
+      };
+    }
+  }, []);
 
   const signInWithGoogle = async () => {
     try {

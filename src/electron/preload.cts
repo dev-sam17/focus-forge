@@ -51,7 +51,8 @@ const electronAPI = {
     return ipcInvoke("open-external", url);
   },
   onOAuthCallback: (callback: (url: string) => void) => {
-    electron.ipcRenderer.on('oauth-callback', (_: Electron.IpcRendererEvent, url: string) => {
+    // Return unsubscribe to prevent listener leaks
+    return ipcOn('oauth-callback', (url: string) => {
       callback(url);
     });
   },

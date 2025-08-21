@@ -1,6 +1,8 @@
 // hooks/useApiClient.ts
+import { useCallback } from 'react'
+
 const useApiClient = () => {
-  const call = async <T>(
+  const call = useCallback(async <T>(
     endpoint: string,
     method: "GET" | "POST" | "DELETE" = "GET",
     body?: unknown
@@ -26,7 +28,7 @@ const useApiClient = () => {
     } catch (err) {
       return { success: false, error: (err as Error).message };
     }
-  };
+  }, []);
 
   return call;
 };
