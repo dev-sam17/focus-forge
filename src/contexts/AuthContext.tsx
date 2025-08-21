@@ -48,6 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (window.location.hash) {
           window.location.hash = "";
         }
+        // Force UI update by setting loading to false
+        setLoading(false);
       }
 
       // Handle user upsert asynchronously without blocking auth state
@@ -95,16 +97,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const code = urlObj.searchParams.get("code");
 
             if (code) {
-              // Use Supabase's session handling for the code exchange
-              const { data, error } =
-                await supabase.auth.exchangeCodeForSession(code);
-              if (error) {
-                console.error("Code exchange error:", error);
-              } else if (data.session) {
-                console.log("Successfully exchanged code for session");
-                // Force a state update to trigger dashboard redirect
-                setSession(data.session);
-                setUser(data.session.user);
+              console.log("Attempting to exchange code for session:", code);
+              try {
+                // Use Supabase's session handling for the code exchange
+                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                
+                if (error) {
+                  console.error("Code exchange error:", error);
+                  // If code exchange fails, try to get existing session
+                  const { data: sessionData } = await supabase.auth.getSession();
+                  if (sessionData.session) {
+                    console.log("Found existing session after failed code exchange");
+                    setSession(sessionData.session);
+                    setUser(sessionData.session.user);
+                  }
+                } else if (data.session) {
+                  console.log("Successfully exchanged code for session");
+                  // Force a state update to trigger dashboard redirect
+                  setSession(data.session);
+                  setUser(data.session.user);
+                  setLoading(false);
+                  
+                  // Ensure the session is persisted
+                  await supabase.auth.getSession();
+                } else {
+                  console.warn("Code exchange succeeded but no session returned");
+                  // Try to get session manually
+                  const { data: sessionData } = await supabase.auth.getSession();
+                  if (sessionData.session) {
+                    setSession(sessionData.session);
+                    setUser(sessionData.session.user);
+                  }
+                }
+              } catch (exchangeError) {
+                console.error("Exception during code exchange:", exchangeError);
+                // Fallback: try to get any existing session
+                const { data: sessionData } = await supabase.auth.getSession();
+                if (sessionData.session) {
+                  console.log("Fallback: found existing session");
+                  setSession(sessionData.session);
+                  setUser(sessionData.session.user);
+                }
               }
             }
           }

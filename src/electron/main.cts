@@ -140,15 +140,8 @@ function handleOAuthCallback(url: string) {
     mainWindow.show();
     mainWindow.focus();
     
-    // Also navigate to the callback page if it's a code-based flow
-    if (url.includes('code=')) {
-      const urlObj = new URL(url);
-      const code = urlObj.searchParams.get('code');
-      if (code) {
-        // Navigate to the auth callback page with the code
-        mainWindow.loadURL(`file://${getUIPath()}#/auth/callback?code=${code}`);
-      }
-    }
+    // Don't navigate to a different URL - let the renderer handle the callback
+    // The renderer process will handle the code exchange and session management
   }
 }
 
