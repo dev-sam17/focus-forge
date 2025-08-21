@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage, shell } from "electron";
+import { app, BrowserWindow, Menu, Tray, nativeImage, shell, ipcMain } from "electron";
 import { join } from "node:path";
 import { startIdleMonitoring } from "./activityMonitor.cjs";
 import { isDev } from "./util.cjs";
@@ -108,8 +108,7 @@ app.on("will-quit", () => {
   // App is quitting
 });
 
-// Handle OAuth redirects for production
-app.setAsDefaultProtocolClient('focus-forge');
+// Protocol client registration moved to app.whenReady()
 
 // Handle deep links for OAuth callbacks
 app.on('open-url', (event, url) => {
@@ -135,8 +134,16 @@ app.on('second-instance', (event, commandLine) => {
 function handleOAuthCallback(url: string) {
   console.log('Received OAuth callback URL:', url);
   if (mainWindow && (url.includes('access_token') || url.includes('code') || url.includes('auth/callback'))) {
-    // Send the callback URL to the renderer process
-    mainWindow.webContents.send('oauth-callback', url);
+    // Ensure the main window is ready
+    if (mainWindow.webContents.isLoading()) {
+      mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow!.webContents.send('oauth-callback', url);
+      });
+    } else {
+      // Send the callback URL to the renderer process
+      mainWindow.webContents.send('oauth-callback', url);
+    }
+    
     mainWindow.show();
     mainWindow.focus();
     
@@ -153,8 +160,32 @@ app.on('web-contents-created', (event, contents) => {
       shell.openExternal(url);
       return { action: 'deny' };
     }
+    
+    // Handle OAuth callback URLs
+    if (url.includes('focus-forge://')) {
+      handleOAuthCallback(url);
+      return { action: 'deny' };
+    }
+    
     return { action: 'allow' };
   });
+  
+  // Also handle navigation events
+  contents.on('will-navigate', (event, url) => {
+    if (url.includes('focus-forge://')) {
+      event.preventDefault();
+      handleOAuthCallback(url);
+    }
+  });
+});
+
+// IPC: open external URLs from renderer (used for OAuth flows)
+ipcMain.handle('open-external', async (_event, url: string) => {
+  try {
+    await shell.openExternal(url);
+  } catch (err) {
+    console.error('Failed to open external URL:', url, err);
+  }
 });
 
 // Single instance lock - prevent multiple app instances
@@ -166,6 +197,15 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     mainWindow = createWindow();
     createTray();
+    
+    // Register as protocol client after app is ready
+    app.setAsDefaultProtocolClient('focus-forge');
+
+    // Handle deep link if app launched via protocol (Windows/Linux first instance)
+    const deeplink = process.argv.find(arg => arg.startsWith('focus-forge://'));
+    if (deeplink) {
+      handleOAuthCallback(deeplink);
+    }
     if (app.isPackaged) {
       setupAutoUpdater();
     }

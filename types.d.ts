@@ -22,6 +22,7 @@ export type EventPayloadMapping = {
     getStaticData: StaticData;
     "user-idle-time": number;
     "user-inactive": boolean;
+    "open-external": void;
 }
 
 export type UnsubscribeFunction = () => void;
@@ -39,6 +40,7 @@ declare global {
             subscribeUserIdleTime: (callback: (idleTime: number) => void) => UnsubscribeFunction;
             subscribeUserInactive: (callback: (inactive: boolean) => void) => UnsubscribeFunction;
             getStaticData: () => Promise<StaticData>;
+            openExternal: (url: string) => Promise<void>;
             onOAuthCallback: (callback: (url: string) => void) => void;
         };
     }

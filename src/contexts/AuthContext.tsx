@@ -83,14 +83,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.electron.onOAuthCallback(async (url: string) => {
         try {
           console.log("Processing OAuth callback:", url);
+          setLoading(true); // Set loading state during processing
 
           // Handle both hash-based and code-based OAuth flows
           if (url.includes("#")) {
             // Hash-based flow (access_token)
             const hashIndex = url.indexOf("#");
             const hash = url.substring(hashIndex + 1);
-            window.location.hash = hash;
-            await supabase.auth.getSession();
+            
+            // Parse the hash parameters
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+            
+            if (accessToken) {
+              // Set the session directly with the tokens
+              const { data } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || ''
+              });
+              
+              if (data.session) {
+                console.log("Successfully set session from hash");
+                setSession(data.session);
+                setUser(data.session.user);
+                setLoading(false);
+              }
+            } else {
+              // Fallback to original method
+              window.location.hash = hash;
+              await supabase.auth.getSession();
+            }
           } else if (url.includes("code=")) {
             // Code-based flow - extract parameters and let Supabase handle
             const urlObj = new URL(url);
@@ -141,8 +164,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
           }
+          
+          setLoading(false); // Ensure loading is cleared
         } catch (error) {
           console.error("OAuth callback error:", error);
+          setLoading(false);
         }
       });
     }
@@ -162,10 +188,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("OAuth redirect URL:", redirectTo);
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
+          skipBrowserRedirect: true,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -176,6 +203,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error("OAuth error:", error);
         return { error };
+      }
+
+      // Open the login URL in the system browser
+      if (data?.url) {
+        if (isElectron && window.electron?.openExternal) {
+          await window.electron.openExternal(data.url);
+        } else {
+          window.location.href = data.url;
+        }
       }
 
       return { error: null };
@@ -195,10 +231,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("OAuth redirect URL:", redirectTo);
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
           redirectTo,
+          skipBrowserRedirect: true,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -209,6 +246,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error("OAuth error:", error);
         return { error };
+      }
+
+      // Open the login URL in the system browser
+      if (data?.url) {
+        if (isElectron && window.electron?.openExternal) {
+          await window.electron.openExternal(data.url);
+        } else {
+          window.location.href = data.url;
+        }
       }
 
       return { error: null };
