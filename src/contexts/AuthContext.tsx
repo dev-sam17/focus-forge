@@ -31,7 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
       // Update state immediately without blocking
       setSession(session);
       setUser(session?.user ?? null);
@@ -64,30 +66,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Handle OAuth callback from Electron main process
-    if (typeof window !== 'undefined' && window.electron?.onOAuthCallback) {
+    if (typeof window !== "undefined" && window.electron?.onOAuthCallback) {
       window.electron.onOAuthCallback(async (url: string) => {
         try {
-          console.log('Processing OAuth callback:', url);
-          
+          console.log("Processing OAuth callback:", url);
+
           // Handle both hash-based and code-based OAuth flows
-          if (url.includes('#')) {
+          if (url.includes("#")) {
             // Hash-based flow (access_token)
-            const hashIndex = url.indexOf('#');
+            const hashIndex = url.indexOf("#");
             const hash = url.substring(hashIndex + 1);
             window.location.hash = hash;
             await supabase.auth.getSession();
-          } else if (url.includes('code=')) {
+          } else if (url.includes("code=")) {
             // Code-based flow - extract parameters and let Supabase handle
             const urlObj = new URL(url);
-            const code = urlObj.searchParams.get('code');
-            
+            const code = urlObj.searchParams.get("code");
+
             if (code) {
               // Use Supabase's session handling for the code exchange
               await supabase.auth.exchangeCodeForSession(code);
             }
           }
         } catch (error) {
-          console.error('OAuth callback error:', error);
+          console.error("OAuth callback error:", error);
         }
       });
     }
@@ -100,13 +102,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       // Always use custom protocol for Electron app
-      const isElectron = typeof window !== 'undefined' && window.electron;
-      const redirectTo = isElectron 
-        ? 'focus-forge://auth/callback'
+      const isElectron = typeof window !== "undefined" && window.electron;
+      const redirectTo = isElectron
+        ? "focus-forge://auth/callback"
         : `${window.location.origin}/auth/callback`;
-        
-      console.log('OAuth redirect URL:', redirectTo);
-        
+
+      console.log("OAuth redirect URL:", redirectTo);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -133,13 +135,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithFacebook = async () => {
     try {
       // Always use custom protocol for Electron app
-      const isElectron = typeof window !== 'undefined' && window.electron;
-      const redirectTo = isElectron 
-        ? 'focus-forge://auth/callback'
+      const isElectron = typeof window !== "undefined" && window.electron;
+      const redirectTo = isElectron
+        ? "focus-forge://auth/callback"
         : `${window.location.origin}/auth/callback`;
-        
-      console.log('OAuth redirect URL:', redirectTo);
-        
+
+      console.log("OAuth redirect URL:", redirectTo);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
@@ -155,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("OAuth error:", error);
         return { error };
       }
-      
+
       return { error: null };
     } catch (error) {
       console.error("Sign in error:", error);
