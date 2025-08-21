@@ -33,11 +33,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
+
       // Update state immediately without blocking
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Handle successful sign in
+      if (event === "SIGNED_IN" && session?.user) {
+        console.log("User successfully signed in, redirecting to dashboard");
+        // Clear any existing hash from OAuth callback
+        if (window.location.hash) {
+          window.location.hash = "";
+        }
+      }
 
       // Handle user upsert asynchronously without blocking auth state
       if (session?.user) {
@@ -85,7 +96,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (code) {
               // Use Supabase's session handling for the code exchange
-              await supabase.auth.exchangeCodeForSession(code);
+              const { data, error } =
+                await supabase.auth.exchangeCodeForSession(code);
+              if (error) {
+                console.error("Code exchange error:", error);
+              } else if (data.session) {
+                console.log("Successfully exchanged code for session");
+                // Force a state update to trigger dashboard redirect
+                setSession(data.session);
+                setUser(data.session.user);
+              }
             }
           }
         } catch (error) {
