@@ -133,11 +133,22 @@ app.on('second-instance', (event, commandLine) => {
 });
 
 function handleOAuthCallback(url: string) {
-  if (mainWindow && (url.includes('access_token') || url.includes('code'))) {
+  console.log('Received OAuth callback URL:', url);
+  if (mainWindow && (url.includes('access_token') || url.includes('code') || url.includes('auth/callback'))) {
     // Send the callback URL to the renderer process
     mainWindow.webContents.send('oauth-callback', url);
     mainWindow.show();
     mainWindow.focus();
+    
+    // Also navigate to the callback page if it's a code-based flow
+    if (url.includes('code=')) {
+      const urlObj = new URL(url);
+      const code = urlObj.searchParams.get('code');
+      if (code) {
+        // Navigate to the auth callback page with the code
+        mainWindow.loadURL(`file://${getUIPath()}#/auth/callback?code=${code}`);
+      }
+    }
   }
 }
 

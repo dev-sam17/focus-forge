@@ -67,14 +67,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined' && window.electron?.onOAuthCallback) {
       window.electron.onOAuthCallback(async (url: string) => {
         try {
-          // Extract the hash from the callback URL
-          const hashIndex = url.indexOf('#');
-          if (hashIndex !== -1) {
+          console.log('Processing OAuth callback:', url);
+          
+          // Handle both hash-based and code-based OAuth flows
+          if (url.includes('#')) {
+            // Hash-based flow (access_token)
+            const hashIndex = url.indexOf('#');
             const hash = url.substring(hashIndex + 1);
-            // Set the hash in the current window for Supabase to process
             window.location.hash = hash;
-            // Trigger session refresh
             await supabase.auth.getSession();
+          } else if (url.includes('code=')) {
+            // Code-based flow - extract parameters and let Supabase handle
+            const urlObj = new URL(url);
+            const code = urlObj.searchParams.get('code');
+            
+            if (code) {
+              // Use Supabase's session handling for the code exchange
+              await supabase.auth.exchangeCodeForSession(code);
+            }
           }
         } catch (error) {
           console.error('OAuth callback error:', error);
@@ -89,9 +99,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      const redirectTo = typeof window !== 'undefined' && window.electron 
+      // Always use custom protocol for Electron app
+      const isElectron = typeof window !== 'undefined' && window.electron;
+      const redirectTo = isElectron 
         ? 'focus-forge://auth/callback'
         : `${window.location.origin}/auth/callback`;
+        
+      console.log('OAuth redirect URL:', redirectTo);
         
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -118,9 +132,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithFacebook = async () => {
     try {
-      const redirectTo = typeof window !== 'undefined' && window.electron 
+      // Always use custom protocol for Electron app
+      const isElectron = typeof window !== 'undefined' && window.electron;
+      const redirectTo = isElectron 
         ? 'focus-forge://auth/callback'
         : `${window.location.origin}/auth/callback`;
+        
+      console.log('OAuth redirect URL:', redirectTo);
         
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
