@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import type { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { getOAuthRedirectUrl, isDevelopment, isElectron } from "../lib/env";
 import useApiClient from "../hooks/useApiClient";
 
 interface AuthContextType {
@@ -86,81 +87,94 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Dedicated OAuth callback listener (attach once to avoid leaks)
   useEffect(() => {
     if (typeof window !== "undefined" && window.electron?.onOAuthCallback) {
-      const unsubscribe = window.electron.onOAuthCallback(async (url: string) => {
-        try {
-          console.log("Processing OAuth callback:", url);
-          setLoading(true);
+      const unsubscribe = window.electron.onOAuthCallback(
+        async (url: string) => {
+          try {
+            console.log("Processing OAuth callback:", url);
+            setLoading(true);
 
-          if (url.includes("#")) {
-            // Hash-based flow (access_token)
-            const hashIndex = url.indexOf("#");
-            const hash = url.substring(hashIndex + 1);
-            const params = new URLSearchParams(hash);
-            const accessToken = params.get('access_token');
-            const refreshToken = params.get('refresh_token');
+            if (url.includes("#")) {
+              // Hash-based flow (access_token)
+              const hashIndex = url.indexOf("#");
+              const hash = url.substring(hashIndex + 1);
+              const params = new URLSearchParams(hash);
+              const accessToken = params.get("access_token");
+              const refreshToken = params.get("refresh_token");
 
-            if (accessToken) {
-              const { data } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken || ''
-              });
-              if (data.session) {
-                console.log("Successfully set session from hash");
-                setSession(data.session);
-                setUser(data.session.user);
-                setLoading(false);
-              }
-            } else {
-              window.location.hash = hash;
-              await supabase.auth.getSession();
-            }
-          } else if (url.includes("code=")) {
-            const urlObj = new URL(url);
-            const code = urlObj.searchParams.get("code");
-            if (code) {
-              console.log("Attempting to exchange code for session:", code);
-              try {
-                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                if (error) {
-                  console.error("Code exchange error:", error);
-                  const { data: sessionData } = await supabase.auth.getSession();
-                  if (sessionData.session) {
-                    console.log("Found existing session after failed code exchange");
-                    setSession(sessionData.session);
-                    setUser(sessionData.session.user);
-                  }
-                } else if (data.session) {
-                  console.log("Successfully exchanged code for session");
+              if (accessToken) {
+                const { data } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken || "",
+                });
+                if (data.session) {
+                  console.log("Successfully set session from hash");
                   setSession(data.session);
                   setUser(data.session.user);
                   setLoading(false);
-                  await supabase.auth.getSession();
-                } else {
-                  console.warn("Code exchange succeeded but no session returned");
-                  const { data: sessionData } = await supabase.auth.getSession();
+                }
+              } else {
+                window.location.hash = hash;
+                await supabase.auth.getSession();
+              }
+            } else if (url.includes("code=")) {
+              const urlObj = new URL(url);
+              const code = urlObj.searchParams.get("code");
+              if (code) {
+                console.log("Attempting to exchange code for session:", code);
+                try {
+                  const { data, error } =
+                    await supabase.auth.exchangeCodeForSession(code);
+                  if (error) {
+                    console.error("Code exchange error:", error);
+                    const { data: sessionData } =
+                      await supabase.auth.getSession();
+                    if (sessionData.session) {
+                      console.log(
+                        "Found existing session after failed code exchange"
+                      );
+                      setSession(sessionData.session);
+                      setUser(sessionData.session.user);
+                    }
+                  } else if (data.session) {
+                    console.log("Successfully exchanged code for session");
+                    setSession(data.session);
+                    setUser(data.session.user);
+                    setLoading(false);
+                    await supabase.auth.getSession();
+                  } else {
+                    console.warn(
+                      "Code exchange succeeded but no session returned"
+                    );
+                    const { data: sessionData } =
+                      await supabase.auth.getSession();
+                    if (sessionData.session) {
+                      setSession(sessionData.session);
+                      setUser(sessionData.session.user);
+                    }
+                  }
+                } catch (exchangeError) {
+                  console.error(
+                    "Exception during code exchange:",
+                    exchangeError
+                  );
+                  const { data: sessionData } =
+                    await supabase.auth.getSession();
                   if (sessionData.session) {
+                    console.log("Fallback: found existing session");
                     setSession(sessionData.session);
                     setUser(sessionData.session.user);
                   }
                 }
-              } catch (exchangeError) {
-                console.error("Exception during code exchange:", exchangeError);
-                const { data: sessionData } = await supabase.auth.getSession();
-                if (sessionData.session) {
-                  console.log("Fallback: found existing session");
-                  setSession(sessionData.session);
-                  setUser(sessionData.session.user);
-                }
               }
             }
-          }
 
-          setLoading(false);
-        } catch (error) {
-          console.error("OAuth callback error:", error);
-          setLoading(false);
+            setLoading(false);
+          } catch (error) {
+            console.error("OAuth callback error:", error);
+            setLoading(false);
+          }
         }
-      });
+      );
 
       return () => {
         unsubscribe?.();
@@ -170,19 +184,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Always use custom protocol for Electron app
-      const isElectron = typeof window !== "undefined" && window.electron;
-      const redirectTo = isElectron
-        ? "focus-forge://auth/callback"
-        : `${window.location.origin}/auth/callback`;
+      const redirectTo = getOAuthRedirectUrl();
+      const isElectronApp = isElectron();
+      const isDev = isDevelopment();
 
       console.log("OAuth redirect URL:", redirectTo);
+      console.log("Environment:", isDev ? "development" : "production");
+      console.log("Is Electron:", isElectronApp);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
-          skipBrowserRedirect: true,
+          skipBrowserRedirect: !isDev,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -195,11 +209,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Open the login URL in the system browser
+      // Handle URL opening based on environment
       if (data?.url) {
-        if (isElectron && window.electron?.openExternal) {
+        if (isElectronApp && window.electron?.openExternal && !isDev) {
+          // Electron: open in external browser
           await window.electron.openExternal(data.url);
         } else {
+          // Development web mode: redirect in same window
           window.location.href = data.url;
         }
       }
@@ -213,19 +229,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithFacebook = async () => {
     try {
-      // Always use custom protocol for Electron app
-      const isElectron = typeof window !== "undefined" && window.electron;
-      const redirectTo = isElectron
-        ? "focus-forge://auth/callback"
-        : `${window.location.origin}/auth/callback`;
+      const redirectTo = getOAuthRedirectUrl();
+      const isElectronApp = isElectron();
+      const isDev = isDevelopment();
 
       console.log("OAuth redirect URL:", redirectTo);
+      console.log("Environment:", isDev ? "development" : "production");
+      console.log("Is Electron:", isElectronApp);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
           redirectTo,
-          skipBrowserRedirect: true,
+          skipBrowserRedirect: !isDev,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -238,11 +254,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Open the login URL in the system browser
+      // Handle URL opening based on environment
       if (data?.url) {
-        if (isElectron && window.electron?.openExternal) {
+        if (isElectronApp && window.electron?.openExternal && !isDev) {
+          // Electron: open in external browser
           await window.electron.openExternal(data.url);
         } else {
+          // Development web mode: redirect in same window
           window.location.href = data.url;
         }
       }
@@ -262,8 +280,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // If there's no session, just clear locally and return
       if (!currentSession) {
-        await supabase.auth.signOut({ scope: 'local' });
-        if (typeof window !== 'undefined' && window.location.hash) window.location.hash = '';
+        await supabase.auth.signOut({ scope: "local" });
+        if (typeof window !== "undefined" && window.location.hash)
+          window.location.hash = "";
         return { error: null };
       }
 
@@ -271,41 +290,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Electron packaged apps can safely do local sign-out to avoid server 403s
       if (isElectron) {
-        await supabase.auth.signOut({ scope: 'local' });
+        await supabase.auth.signOut({ scope: "local" });
         // Clear any OAuth hash remnants
-        if (window.location.hash) window.location.hash = '';
+        if (window.location.hash) window.location.hash = "";
         return { error: null };
       }
 
       // Web: attempt global sign-out first
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      const { error } = await supabase.auth.signOut({ scope: "global" });
       if (error) {
         type MaybeStatusError = AuthError & { status?: number };
         const authErr = error as MaybeStatusError;
-        const msg = authErr.message || '';
+        const msg = authErr.message || "";
         const status = authErr.status;
         // Fallback to local if server rejects due to missing/invalid session
-        if (status === 403 || msg.includes('session_not_found')) {
-          await supabase.auth.signOut({ scope: 'local' });
-          if (window.location.hash) window.location.hash = '';
+        if (status === 403 || msg.includes("session_not_found")) {
+          await supabase.auth.signOut({ scope: "local" });
+          if (window.location.hash) window.location.hash = "";
           return { error: null };
         }
         // Ensure local clear anyway as a fallback
-        await supabase.auth.signOut({ scope: 'local' });
-        if (window.location.hash) window.location.hash = '';
+        await supabase.auth.signOut({ scope: "local" });
+        if (window.location.hash) window.location.hash = "";
         return { error: null };
       }
 
-      if (window.location.hash) window.location.hash = '';
+      if (window.location.hash) window.location.hash = "";
       return { error: null };
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       try {
-        await supabase.auth.signOut({ scope: 'local' });
+        await supabase.auth.signOut({ scope: "local" });
       } catch {
         /* noop */
       }
-      if (typeof window !== 'undefined' && window.location.hash) window.location.hash = '';
+      if (typeof window !== "undefined" && window.location.hash)
+        window.location.hash = "";
       return { error: error as AuthError };
     }
   };
