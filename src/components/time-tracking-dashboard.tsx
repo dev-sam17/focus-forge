@@ -151,6 +151,15 @@ export default function TimeTrackingDashboard({
     }
   };
 
+  const handleUnarchiveTask = async (taskId: string) => {
+    const res = await api(`/trackers/${taskId}/unarchive`, "POST");
+
+    if (res.success) {
+      fetchTasks();
+      fetchActiveSessions();
+    }
+  };
+
   const handleDeleteTask = async (taskId: string) => {
     const res = await api(`/trackers/${taskId}`, "DELETE");
 
@@ -337,7 +346,11 @@ export default function TimeTrackingDashboard({
                   className="anime-slide-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <ArchivedTracker task={task} onDelete={handleDeleteTask} />
+                  <ArchivedTracker
+                    task={task}
+                    onDelete={handleDeleteTask}
+                    onUnarchive={handleUnarchiveTask}
+                  />
                 </div>
               ))}
             </div>
