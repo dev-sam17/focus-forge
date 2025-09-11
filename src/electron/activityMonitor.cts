@@ -1,4 +1,4 @@
-import { powerMonitor, app, BrowserWindow } from 'electron';
+import { powerMonitor, app, BrowserWindow } from "electron";
 
 interface IdleMonitor {
   stop: () => void;
@@ -6,9 +6,9 @@ interface IdleMonitor {
 
 // Configuration
 const DEFAULT_CONFIG = {
-  idleThresholdSeconds: 60, // 1 minute
+  idleThresholdSeconds: 180, // 3 minutes
   checkIntervalMs: 5000, // Check every 5 seconds
-  debug: false
+  debug: false,
 };
 
 export function startIdleMonitoring(
@@ -23,13 +23,13 @@ export function startIdleMonitoring(
 
   function checkIdleTime() {
     const idleTime = powerMonitor.getSystemIdleTime();
-    
+
     if (idleTime >= idleThresholdSeconds) {
-      mainWindow.webContents.send('user-inactive', true);
+      mainWindow.webContents.send("user-inactive", true);
       mainWindow.show();
     } else if (debug) {
       console.debug(`[Activity Monitor] Current idle time: ${idleTime}s`);
-      mainWindow.webContents.send('user-idle-time', idleTime);
+      mainWindow.webContents.send("user-idle-time", idleTime);
     }
   }
 
@@ -41,17 +41,17 @@ export function startIdleMonitoring(
     intervalId = setInterval(checkIdleTime, checkIntervalMs);
 
     // Handle normal app quit
-    appInstance.on('before-quit', cleanup);
+    appInstance.on("before-quit", cleanup);
 
     // Handle system shutdown/restart
-    powerMonitor.on('shutdown', cleanup);
-    powerMonitor.on('suspend', cleanup);
+    powerMonitor.on("shutdown", cleanup);
+    powerMonitor.on("suspend", cleanup);
 
     // Handle window close
 
     function cleanup() {
       if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('user-inactive', true);
+        mainWindow.webContents.send("user-inactive", true);
       }
       stop();
     }
@@ -60,7 +60,7 @@ export function startIdleMonitoring(
   function stop() {
     if (!isTracking) return;
     if (intervalId) clearInterval(intervalId);
-    
+
     isTracking = false;
     intervalId = null;
   }
@@ -68,6 +68,6 @@ export function startIdleMonitoring(
   start();
 
   return {
-    stop
+    stop,
   };
 }
