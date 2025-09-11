@@ -10,7 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import type { Tracker } from "@/lib/types";
+import type { Tracker } from "../lib/types";
+import { useAuth } from "../contexts/AuthContext";
+import useApiClient from "../hooks/useApiClient";
 import DailyHoursChart from "./charts/daily-hours-chart";
 import TaskDistributionChart from "./charts/task-distribution-chart";
 import ProductivityTrendChart from "./charts/productivity-trend-chart";
@@ -19,20 +21,53 @@ interface StatisticsViewProps {
   tasks: Tracker[];
 }
 
+interface DailyTotal {
+  date: string;
+  totalMinutes: number;
+  totalHours: number;
+  sessionCount: number;
+}
+
 export default function StatisticsView({ tasks }: StatisticsViewProps) {
   const [selectedTask, setSelectedTask] = useState<string>("all");
   const [timeRange, setTimeRange] = useState<string>("week");
   const [isLoading, setIsLoading] = useState(true);
+  const [dailyTotals, setDailyTotals] = useState<DailyTotal[]>([]);
+  const [targetHours, setTargetHours] = useState<number>(6);
 
-  // Simulate loading statistics data
-  useEffect(() => {
+  const { user } = useAuth();
+  const api = useApiClient();
+
+  // Fetch daily totals from API
+  const fetchDailyTotals = async () => {
+    if (!user?.id) return;
+
     setIsLoading(true);
-    const timer = setTimeout(() => {
+    try {
+      const res = await api<DailyTotal[]>(
+        `/users/${user.id}/daily-totals/${timeRange}?trackerId=${
+          selectedTask === "all" ? "" : selectedTask
+        }`
+      );
+      if (res.success && res.data) {
+        setDailyTotals(res.data);
+        const target =
+          selectedTask === "all"
+            ? 8
+            : tasks.find((task) => task.id === selectedTask)?.targetHours || 0;
+        setTargetHours(target);
+      }
+    } catch (error) {
+      console.error("Failed to fetch daily totals:", error);
+      setDailyTotals([]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, [selectedTask, timeRange]);
+  useEffect(() => {
+    fetchDailyTotals();
+  }, [user?.id, timeRange, selectedTask]);
 
   return (
     <div className="space-y-6">
@@ -59,7 +94,6 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
               <SelectValue placeholder="Time Range" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="day">Today</SelectItem>
               <SelectItem value="week">This Week</SelectItem>
               <SelectItem value="month">This Month</SelectItem>
               <SelectItem value="year">This Year</SelectItem>
@@ -88,7 +122,12 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
                   </div>
                 </div>
               ) : (
-                <DailyHoursChart taskId={selectedTask} timeRange={timeRange} />
+                <DailyHoursChart
+                  taskId={selectedTask}
+                  timeRange={timeRange}
+                  dailyTotals={dailyTotals}
+                  targetHours={targetHours}
+                />
               )}
             </CardContent>
           </Card>

@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  ChartContainer,
-  // ChartTooltip,
-  // ChartTooltipContent,
-  ChartLegend,
-  ChartLegendItem,
-} from "../ui/chart";
+import { ChartContainer, ChartLegend, ChartLegendItem } from "../ui/chart";
 import {
   BarChart,
   Bar,
@@ -16,70 +10,121 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   ReferenceLine,
+  Tooltip,
 } from "recharts";
+
+interface DailyTotal {
+  date: string;
+  totalMinutes: number;
+  totalHours: number;
+  sessionCount: number;
+}
 
 interface DailyHoursChartProps {
   taskId: string;
   timeRange: string;
+  dailyTotals: DailyTotal[];
+  targetHours: number;
+}
+
+interface ChartData {
+  date: string;
+  hours: number;
 }
 
 export default function DailyHoursChart({
   taskId,
   timeRange,
+  dailyTotals,
+  targetHours,
 }: DailyHoursChartProps) {
-  const [data, setData] = useState<unknown[]>([]);
-  const [targetHours, setTargetHours] = useState<number>(0);
+  const [data, setData] = useState<ChartData[]>([]);
 
   useEffect(() => {
-    // In a real app, this would be an API call with taskId and timeRange as parameters
-    // Mock data generation
-    const generateData = () => {
-      const days =
-        timeRange === "day"
-          ? 1
-          : timeRange === "week"
-          ? 7
-          : timeRange === "month"
-          ? 30
-          : 365;
+    // Transform API data for chart display
+    const transformData = () => {
+      if (!dailyTotals || dailyTotals.length === 0) {
+        return [];
+      }
 
-      const result: Array<{ date: string; hours: number }> = [];
-      const now = new Date();
-
-      // Set a mock target hours based on taskId
-      const mockTargetHours =
-        taskId === "all"
-          ? 6
-          : taskId === "task-1"
-          ? 4
-          : taskId === "task-2"
-          ? 6
-          : 2;
-      setTargetHours(mockTargetHours);
-
-      for (let i = 0; i < days; i++) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-
+      // Convert API data to chart format
+      const chartData: ChartData[] = dailyTotals.map((total) => {
+        const date = new Date(total.date);
         const formattedDate = date.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
         });
 
-        // Generate random hours between 0-8 hours
-        const hours = Math.random() * 8;
-
-        result.unshift({
+        return {
           date: formattedDate,
-          hours: Number.parseFloat(hours.toFixed(1)),
-        });
-      }
+          hours: Number.parseFloat(total.totalHours.toFixed(1)),
+        };
+      });
 
-      return result.slice(0, 7); // Only show last 7 days for any time range
+      // Sort by date to ensure proper order
+      chartData.sort((a, b) => {
+        const dateA = new Date(a.date + ", 2024");
+        const dateB = new Date(b.date + ", 2024");
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      return chartData;
     };
 
-    setData(generateData());
-  }, [taskId, timeRange]);
+    setData(transformData());
+  }, [dailyTotals, taskId, timeRange]);
+
+  // Show message if no data available
+  if (!dailyTotals || dailyTotals.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <p className="text-lg mb-2">No data available</p>
+          <p className="text-sm">
+            Start tracking time to see your daily hours chart
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Custom tooltip content
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      value: number;
+      dataKey: string;
+      color: string;
+    }>;
+    label?: string;
+  }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background/70 backdrop-blur-sm border border-border/50 rounded-lg shadow-xl px-3 py-2 text-sm">
+          <p className="font-medium text-foreground mb-1 text-xs">{label}</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <span className="text-xs text-muted-foreground">
+                {payload[0].value} hrs
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+              <span className="text-xs text-muted-foreground">
+                Target: {targetHours} hrs
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <ChartContainer>
@@ -107,27 +152,11 @@ export default function DailyHoursChart({
               fill: "#ef4444",
             }}
           />
-          {/* <ChartTooltip
-            content={
-              <ChartTooltipContent
-                className="bg-white p-2 border rounded shadow-sm"
-                items={({ payload }) => {
-                  return [
-                    ...(payload?.map((entry: { value: any; }) => ({
-                      label: "Hours",
-                      value: `${entry.value} hrs`,
-                      color: "#3b82f6",
-                    })) || []),
-                    {
-                      label: "Target",
-                      value: `${targetHours} hrs`,
-                      color: "#ef4444",
-                    },
-                  ];
-                }}
-              />
-            }
-          /> */}
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ fill: "rgba(59, 130, 246, 0.1)" }}
+            animationDuration={150}
+          />
           <Bar dataKey="hours" fill="#3b82f6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>

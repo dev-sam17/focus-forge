@@ -1,12 +1,9 @@
 "use client";
 
-// Anime-styled Time Tracking Dashboard
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import TimeTracker from "./time-tracker";
 import ArchivedTracker from "./archived-tracker";
-// import StatisticsView from "./statistics-view";
 import type { Tracker, ActiveSession, NewTracker } from "../lib/types";
 import AddTaskDialog from "./add-task";
 import useApiClient from "../hooks/useApiClient";
@@ -19,6 +16,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import StatisticsView from "./statistics-view";
 
 interface TimeTrackingDashboardProps {
   onBackendStatusChange?: (available: boolean) => void;
@@ -81,13 +79,13 @@ export default function TimeTrackingDashboard({
   };
 
   const fetchActiveSessions = async () => {
-    const res = await api<ActiveSession[]>("/sessions/active");
+    const res = await api<ActiveSession[]>(`/sessions/${user?.id}/active`);
     if (res.success && res.data) {
       setActiveSessions(
         res.data.reduce((acc, session) => {
           acc[session.trackerId] = session;
           return acc;
-        }, {})
+        }, {} as Record<string, ActiveSession>)
       );
     }
   };
@@ -249,6 +247,13 @@ export default function TimeTrackingDashboard({
               Active Trackers
             </TabsTrigger>
             <TabsTrigger
+              value="statistics"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Statistics
+            </TabsTrigger>
+            <TabsTrigger
               value="archives"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
             >
@@ -357,9 +362,9 @@ export default function TimeTrackingDashboard({
           )}
         </TabsContent>
 
-        {/* <TabsContent value="statistics" className="anime-slide-up">
-          <StatisticsView tasks={tasks} />
-        </TabsContent> */}
+        <TabsContent value="statistics" className="anime-slide-up">
+          <StatisticsView tasks={activeTasks} />
+        </TabsContent>
       </Tabs>
     </div>
   );
