@@ -73,11 +73,6 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
       );
       if (res.success && res.data) {
         setDailyTotals(res.data);
-        const target =
-          selectedTask === "all"
-            ? 8
-            : tasks.find((task) => task.id === selectedTask)?.targetHours || 0;
-        setTargetHours(target);
       }
     } catch (error) {
       console.error("Failed to fetch daily totals:", error);
@@ -99,6 +94,29 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
       );
       if (res.success && res.data) {
         setTotalHours(res.data);
+        if (selectedTask === "all") {
+          switch (timeRange) {
+            case "week":
+              setTargetHours(
+                Number((res.data.totalTargetHours / 7).toFixed(1))
+              );
+              break;
+            case "month":
+              setTargetHours(
+                Number((res.data.totalTargetHours / 30).toFixed(1))
+              );
+              break;
+            case "year":
+              setTargetHours(
+                Number((res.data.totalTargetHours / 365).toFixed(1))
+              );
+              break;
+          }
+        } else {
+          setTargetHours(
+            tasks.find((task) => task.id === selectedTask)?.targetHours || 0
+          );
+        }
       }
     } catch (error) {
       console.error("Failed to fetch total hours:", error);
