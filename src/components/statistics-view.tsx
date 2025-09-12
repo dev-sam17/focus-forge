@@ -237,7 +237,15 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         <TabsContent value="daily">
           <Card>
             <CardHeader>
-              <CardTitle>Daily Hours Worked</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Daily Hours Worked</span>
+                <WorkDays
+                  workDays={
+                    tasks.find((t) => t.id === selectedTask)?.workDays ?? ""
+                  }
+                  isAll={selectedTask === "all"}
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {isLoading ? (
@@ -261,7 +269,15 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         <TabsContent value="distribution">
           <Card>
             <CardHeader>
-              <CardTitle>Hours Distribution</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Hours Distribution</span>
+                <WorkDays
+                  workDays={
+                    tasks.find((t) => t.id === selectedTask)?.workDays ?? ""
+                  }
+                  isAll={selectedTask === "all"}
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {isLoading ? (
@@ -284,7 +300,15 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         <TabsContent value="productivity">
           <Card>
             <CardHeader>
-              <CardTitle>Productivity Trend</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Productivity Trend</span>
+                <WorkDays
+                  workDays={
+                    tasks.find((t) => t.id === selectedTask)?.workDays ?? ""
+                  }
+                  isAll={selectedTask === "all"}
+                />
+              </CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {isLoading ? (
@@ -304,6 +328,30 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function WorkDays({ workDays, isAll }: { workDays: string; isAll: boolean }) {
+  if (isAll) return null;
+  return (
+    <div className="flex gap-1 justify-end">
+      {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => {
+        const workDaysArray = workDays.split(",").map(Number);
+        const isActive = workDaysArray.includes(index);
+        return (
+          <div
+            key={index}
+            className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-all duration-200 ${
+              isActive
+                ? "bg-gradient-to-r from-primary to-accent text-white shadow-sm"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            {day}
+          </div>
+        );
+      })}
     </div>
   );
 }
