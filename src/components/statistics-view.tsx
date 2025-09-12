@@ -28,12 +28,34 @@ interface DailyTotal {
   sessionCount: number;
 }
 
+interface TotalHours {
+  totalHoursWorked: number;
+  totalTargetHours: number;
+  hoursDifference: number;
+  isAhead: boolean;
+  status: string;
+  sessionCount: number;
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+}
+
+interface TrackerHours {
+  trackerId: string;
+  trackerName: string;
+  totalHours: number;
+  targetHours: number;
+}
+
 export default function StatisticsView({ tasks }: StatisticsViewProps) {
   const [selectedTask, setSelectedTask] = useState<string>("all");
   const [timeRange, setTimeRange] = useState<string>("week");
   const [isLoading, setIsLoading] = useState(true);
   const [dailyTotals, setDailyTotals] = useState<DailyTotal[]>([]);
   const [targetHours, setTargetHours] = useState<number>(6);
+  const [totalHours, setTotalHours] = useState<TotalHours | null>(null);
+  const [trackerHours, setTrackerHours] = useState<TrackerHours[]>([]);
 
   const { user } = useAuth();
   const api = useApiClient();
@@ -65,8 +87,64 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     }
   };
 
+  // Fetch total hours from API
+  const fetchTotalHours = async () => {
+    if (!user?.id) return;
+
+    try {
+      const res = await api<TotalHours>(
+        `/users/${user.id}/total-hours/${timeRange}?trackerId=${
+          selectedTask !== "all" ? selectedTask : ""
+        }`
+      );
+      if (res.success && res.data) {
+        setTotalHours(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch total hours:", error);
+      setTotalHours(null);
+    }
+  };
+
+  // Fetch hours per tracker (only when "all" is selected)
+  const fetchTrackerHours = async () => {
+    if (!user?.id || selectedTask !== "all") {
+      setTrackerHours([]);
+      return;
+    }
+
+    try {
+      // Call the API for each tracker to get individual hours
+      const trackerPromises = tasks.map(async (task) => {
+        const res = await api<TotalHours>(
+          `/users/${user.id}/total-hours/${timeRange}?trackerId=${task.id}`
+        );
+        if (res.success && res.data) {
+          return {
+            trackerId: task.id,
+            trackerName: task.trackerName,
+            totalHours: res.data.totalHoursWorked,
+            targetHours: task.targetHours,
+          };
+        }
+        return null;
+      });
+
+      const results = await Promise.all(trackerPromises);
+      const validResults = results.filter(
+        (result): result is TrackerHours => result !== null
+      );
+      setTrackerHours(validResults);
+    } catch (error) {
+      console.error("Failed to fetch tracker hours:", error);
+      setTrackerHours([]);
+    }
+  };
+
   useEffect(() => {
     fetchDailyTotals();
+    fetchTotalHours();
+    fetchTrackerHours();
   }, [user?.id, timeRange, selectedTask]);
 
   return (
@@ -78,7 +156,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
               <SelectValue placeholder="Select Task" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Tasks</SelectItem>
+              <SelectItem value="all">All Trackers</SelectItem>
               {tasks.map((task) => (
                 <SelectItem key={task.id} value={task.id}>
                   {task.trackerName}
@@ -105,7 +183,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="daily">Daily Hours</TabsTrigger>
-          <TabsTrigger value="distribution">Task Distribution</TabsTrigger>
+          <TabsTrigger value="distribution">Hours Distribution</TabsTrigger>
           <TabsTrigger value="productivity">Productivity Trend</TabsTrigger>
         </TabsList>
 
@@ -136,7 +214,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         <TabsContent value="distribution">
           <Card>
             <CardHeader>
-              <CardTitle>Task Distribution</CardTitle>
+              <CardTitle>Hours Distribution</CardTitle>
             </CardHeader>
             <CardContent className="h-[400px]">
               {isLoading ? (
@@ -146,7 +224,11 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
                   </div>
                 </div>
               ) : (
-                <TaskDistributionChart timeRange={timeRange} />
+                <TaskDistributionChart
+                  totalHours={totalHours}
+                  trackerHours={trackerHours}
+                  selectedTask={selectedTask}
+                />
               )}
             </CardContent>
           </Card>
