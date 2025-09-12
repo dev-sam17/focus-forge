@@ -163,6 +163,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     fetchDailyTotals();
     fetchTotalHours();
     fetchTrackerHours();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, timeRange, selectedTask]);
 
   return (

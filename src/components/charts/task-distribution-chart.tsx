@@ -104,6 +104,7 @@ export default function TaskDistributionChart({
         setData(chartData);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalHours, trackerHours, selectedTask]);
 
   // Custom tooltip
