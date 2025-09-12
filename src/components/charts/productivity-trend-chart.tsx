@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  ChartContainer,
-  // ChartTooltip,
-  // ChartTooltipContent,
-  ChartLegend,
-  ChartLegendItem,
-} from "../ui/chart";
+import { ChartContainer, ChartLegend, ChartLegendItem } from "../ui/chart";
 import {
   LineChart,
   Line,
@@ -15,74 +9,111 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
+  ReferenceLine,
 } from "recharts";
+
+interface ProductivityData {
+  date: string;
+  score: number;
+}
 
 interface ProductivityTrendChartProps {
   taskId: string;
   timeRange: string;
+  productivityData: ProductivityData[];
+}
+
+interface ChartData {
+  date: string;
+  productivity: number;
 }
 
 export default function ProductivityTrendChart({
   taskId,
   timeRange,
+  productivityData,
 }: ProductivityTrendChartProps) {
-  const [data, setData] = useState<unknown[]>([]);
+  const [data, setData] = useState<ChartData[]>([]);
+  console.log(productivityData);
 
   useEffect(() => {
-    // In a real app, this would be an API call with taskId and timeRange as parameters
-    // Mock data generation
-    const generateData = () => {
-      const days =
-        timeRange === "day"
-          ? 24
-          : // Hours in a day
-          timeRange === "week"
-          ? 7
-          : timeRange === "month"
-          ? 30
-          : 12; // Months in a year
-
-      const result: Array<{ date: string; productivity: number }> = [];
-      const now = new Date();
-
-      let previousProductivity = 50 + Math.random() * 20;
-
-      for (let i = 0; i < days; i++) {
-        const date = new Date(now);
-
-        let label;
-        if (timeRange === "day") {
-          date.setHours(date.getHours() - i);
-          label = date.toLocaleTimeString("en-US", { hour: "2-digit" });
-        } else if (timeRange === "year") {
-          date.setMonth(date.getMonth() - i);
-          label = date.toLocaleDateString("en-US", { month: "short" });
-        } else {
-          date.setDate(date.getDate() - i);
-          label = date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
-        }
-
-        // Generate productivity score with some continuity
-        const change = (Math.random() - 0.5) * 15;
-        previousProductivity = Math.max(
-          0,
-          Math.min(100, previousProductivity + change)
-        );
-
-        result.unshift({
-          date: label,
-          productivity: Number.parseFloat(previousProductivity.toFixed(1)),
-        });
+    // Transform API data for chart display
+    const transformData = () => {
+      if (!productivityData || productivityData.length === 0) {
+        return [];
       }
 
-      return result;
+      // Convert API data to chart format
+      const chartData: ChartData[] = productivityData.map((item) => {
+        const date = new Date(item.date);
+        const formattedDate = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+
+        return {
+          date: formattedDate,
+          productivity: item.score,
+        };
+      });
+
+      // Sort by date to ensure proper order
+      chartData.sort((a, b) => {
+        const dateA = new Date(a.date + ", 2024");
+        const dateB = new Date(b.date + ", 2024");
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      return chartData;
     };
 
-    setData(generateData());
-  }, [taskId, timeRange]);
+    setData(transformData());
+  }, [productivityData, taskId, timeRange]);
+
+  // Custom tooltip
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      value: number;
+      dataKey: string;
+      color: string;
+    }>;
+    label?: string;
+  }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background/95 backdrop-blur-sm border border-border/50 rounded-lg shadow-xl px-3 py-2 text-sm">
+          <p className="font-medium text-foreground mb-1 text-xs">{`Date: ${label}`}</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-xs text-muted-foreground">
+              Score: {payload[0].value}
+            </span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Show message if no data available
+  if (!productivityData || productivityData.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <p className="text-lg mb-2">No productivity data available</p>
+          <p className="text-sm">
+            Start tracking time to see your productivity trends
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ChartContainer>
@@ -97,25 +128,10 @@ export default function ProductivityTrendChart({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis
-            domain={[0, 100]}
+            domain={[0, 150]}
             label={{ value: "Score", angle: -90, position: "insideLeft" }}
           />
-          {/* <ChartTooltip
-            content={
-              <ChartTooltipContent
-                className="bg-white p-2 border rounded shadow-sm"
-                items={({ payload }) => {
-                  return (
-                    payload?.map((entry) => ({
-                      label: "Productivity",
-                      value: `${entry.value}%`,
-                      color: "#10b981",
-                    })) || []
-                  );
-                }}
-              />
-            }
-          /> */}
+          <Tooltip content={<CustomTooltip />} />
           <Line
             type="monotone"
             dataKey="productivity"
@@ -123,6 +139,16 @@ export default function ProductivityTrendChart({
             strokeWidth={2}
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
+          />
+          <ReferenceLine
+            y={100}
+            stroke="#ef4444"
+            strokeDasharray="3 3"
+            label={{
+              value: "Ideal Score",
+              position: "insideBottomRight",
+              fill: "#ef4444",
+            }}
           />
         </LineChart>
       </ResponsiveContainer>

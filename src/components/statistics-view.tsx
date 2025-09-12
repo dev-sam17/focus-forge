@@ -48,6 +48,11 @@ interface TrackerHours {
   targetHours: number;
 }
 
+interface ProductivityData {
+  date: string;
+  score: number;
+}
+
 export default function StatisticsView({ tasks }: StatisticsViewProps) {
   const [selectedTask, setSelectedTask] = useState<string>("all");
   const [timeRange, setTimeRange] = useState<string>("week");
@@ -56,6 +61,9 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
   const [targetHours, setTargetHours] = useState<number>(6);
   const [totalHours, setTotalHours] = useState<TotalHours | null>(null);
   const [trackerHours, setTrackerHours] = useState<TrackerHours[]>([]);
+  const [productivityData, setProductivityData] = useState<ProductivityData[]>(
+    []
+  );
 
   const { user } = useAuth();
   const api = useApiClient();
@@ -159,11 +167,31 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     }
   };
 
+  // Fetch productivity trend data
+  const fetchProductivityData = async () => {
+    if (!user?.id) return;
+
+    try {
+      const res = await api<ProductivityData[]>(
+        `/users/${user.id}/productivity-trend/${timeRange}?trackerId=${
+          selectedTask !== "all" ? selectedTask : ""
+        }`
+      );
+      if (res.success && res.data) {
+        setProductivityData(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch productivity data:", error);
+      setProductivityData([]);
+    }
+  };
+
   useEffect(() => {
     fetchDailyTotals();
     fetchTotalHours();
     fetchTrackerHours();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchProductivityData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, timeRange, selectedTask]);
 
   return (
@@ -269,6 +297,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
                 <ProductivityTrendChart
                   taskId={selectedTask}
                   timeRange={timeRange}
+                  productivityData={productivityData}
                 />
               )}
             </CardContent>
