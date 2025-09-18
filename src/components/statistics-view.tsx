@@ -16,6 +16,7 @@ import useApiClient from "../hooks/useApiClient";
 import DailyHoursChart from "./charts/daily-hours-chart";
 import TaskDistributionChart from "./charts/task-distribution-chart";
 import ProductivityTrendChart from "./charts/productivity-trend-chart";
+import TodayStatsComponent from "./today-stats";
 
 interface StatisticsViewProps {
   tasks: Tracker[];
@@ -227,12 +228,17 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         </div>
       </div>
 
-      <Tabs defaultValue="daily" className="w-full">
+      <Tabs defaultValue="today" className="w-full">
         <TabsList className="mb-4">
+          <TabsTrigger value="today">Today's Stats</TabsTrigger>
           <TabsTrigger value="daily">Daily Hours</TabsTrigger>
           <TabsTrigger value="distribution">Hours Distribution</TabsTrigger>
           <TabsTrigger value="productivity">Productivity Trend</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="today">
+          <TodayStatsComponent selectedTask={selectedTask} />
+        </TabsContent>
 
         <TabsContent value="daily">
           <Card>
