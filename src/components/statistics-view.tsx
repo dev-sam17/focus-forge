@@ -55,8 +55,18 @@ interface ProductivityData {
 }
 
 export default function StatisticsView({ tasks }: StatisticsViewProps) {
-  const [selectedTask, setSelectedTask] = useState<string>("all");
-  const [timeRange, setTimeRange] = useState<string>("week");
+  const [selectedTask, setSelectedTask] = useState<string>(() => {
+    // Get the last selected task from localStorage, default to "all"
+    return localStorage.getItem('statistics-selected-task') || 'all';
+  });
+  const [timeRange, setTimeRange] = useState<string>(() => {
+    // Get the last selected time range from localStorage, default to "week"
+    return localStorage.getItem('statistics-time-range') || 'week';
+  });
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    // Get the last selected tab from localStorage, default to "today"
+    return localStorage.getItem('statistics-active-tab') || 'today';
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [dailyTotals, setDailyTotals] = useState<DailyTotal[]>([]);
   const [targetHours, setTargetHours] = useState<number>(6);
@@ -187,6 +197,24 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     }
   };
 
+  // Handle task selection change and save to localStorage
+  const handleTaskChange = (value: string) => {
+    setSelectedTask(value);
+    localStorage.setItem('statistics-selected-task', value);
+  };
+
+  // Handle time range change and save to localStorage
+  const handleTimeRangeChange = (value: string) => {
+    setTimeRange(value);
+    localStorage.setItem('statistics-time-range', value);
+  };
+
+  // Handle tab change and save to localStorage
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    localStorage.setItem('statistics-active-tab', value);
+  };
+
   useEffect(() => {
     fetchDailyTotals();
     fetchTotalHours();
@@ -199,7 +227,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="w-full sm:w-1/2">
-          <Select value={selectedTask} onValueChange={setSelectedTask}>
+          <Select value={selectedTask} onValueChange={handleTaskChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select Task" />
             </SelectTrigger>
@@ -215,7 +243,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         </div>
 
         <div className="w-full sm:w-1/2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger>
               <SelectValue placeholder="Time Range" />
             </SelectTrigger>
@@ -228,7 +256,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
         </div>
       </div>
 
-      <Tabs defaultValue="today" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="today">Today's Stats</TabsTrigger>
           <TabsTrigger value="daily">Daily Hours</TabsTrigger>

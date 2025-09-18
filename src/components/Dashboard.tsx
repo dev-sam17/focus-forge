@@ -63,19 +63,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 relative overflow-hidden">
-      {/* Animated Background Orbs */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
-        <div
-          className="absolute -bottom-20 -left-20 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: "2s" }}
-        />
-        <div
-          className="absolute top-1/3 left-1/3 w-80 h-80 bg-primary/15 rounded-full blur-2xl animate-float"
-          style={{ animationDelay: "4s" }}
-        />
-      </div> */}
-
       <div className="p-6 mt-5">
         <div className="max-w-7xl mx-auto">
           {/* Minimal Navbar Header */}

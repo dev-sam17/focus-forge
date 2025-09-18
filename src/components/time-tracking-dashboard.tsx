@@ -33,6 +33,10 @@ export default function TimeTrackingDashboard({
   const [isOnline, setIsOnline] = useState(true);
   const [isBackendAvailable, setIsBackendAvailable] = useState(true);
   const [userInactive, setUserInactive] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    // Get the last selected tab from localStorage, default to "trackers"
+    return localStorage.getItem('dashboard-active-tab') || 'trackers';
+  });
   const { user } = useAuth();
 
   useEffect(() => {
@@ -189,6 +193,12 @@ export default function TimeTrackingDashboard({
   const activeTasks = tasks.filter((task) => !task.archived);
   const archivedTasks = tasks.filter((task) => task.archived);
 
+  // Handle tab change and save to localStorage
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    localStorage.setItem('dashboard-active-tab', value);
+  };
+
   // Show loading state
   if (!isOnline || !isBackendAvailable) {
     return (
@@ -237,7 +247,7 @@ export default function TimeTrackingDashboard({
 
   return (
     <div className="space-y-8 min-h-[calc(100vh-12rem)]">
-      <Tabs defaultValue="trackers" className="w-full anime-slide-up">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full anime-slide-up">
         <div className="flex items-center justify-between mb-2">
           <TabsList className="glass bg-card/50 backdrop-blur-sm border-0 p-1 rounded-2xl shadow-lg">
             <TabsTrigger
