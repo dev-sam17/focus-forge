@@ -10,9 +10,11 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false # don't cancel other OS builds if one fails
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -21,18 +23,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
-
-      - name: Enable corepack & install pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.15.0 --activate
-          pnpm --version
+          cache: 'npm'
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install
 
       - name: Build & Publish
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: pnpm run publish:always
+        run: npm run publish:always
