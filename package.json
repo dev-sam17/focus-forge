@@ -3,7 +3,11 @@
   "private": true,
   "version": "1.2.3",
   "description": "A lightweight, desktop productivity application built with **Electron**, **React**, and **Supabase**. Focus Forge helps you track time and forge better focus habits.",
-  "author": "Saurav Kumar",
+  "author": {
+    "name": "Saurav Kumar",
+    "url": "https://github.com/dev-sam17",
+    "email": "codewizard.saurav@gmail.com"
+  },
   "homepage": "https://github.com/dev-sam17/focus-forge",
   "type": "module",
   "main": "dist-electron/main.cjs",
