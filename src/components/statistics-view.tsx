@@ -55,18 +55,11 @@ interface ProductivityData {
 }
 
 export default function StatisticsView({ tasks }: StatisticsViewProps) {
-  const [selectedTask, setSelectedTask] = useState<string>(() => {
-    // Get the last selected task from localStorage, default to "all"
-    return localStorage.getItem('statistics-selected-task') || 'all';
-  });
-  const [timeRange, setTimeRange] = useState<string>(() => {
-    // Get the last selected time range from localStorage, default to "week"
-    return localStorage.getItem('statistics-time-range') || 'week';
-  });
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    // Get the last selected tab from localStorage, default to "today"
-    return localStorage.getItem('statistics-active-tab') || 'today';
-  });
+  // Initialize states with default values first
+  const [selectedTask, setSelectedTask] = useState<string>('all');
+  const [timeRange, setTimeRange] = useState<string>('week');
+  const [activeTab, setActiveTab] = useState<string>('today');
+  const [initialized, setInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dailyTotals, setDailyTotals] = useState<DailyTotal[]>([]);
   const [targetHours, setTargetHours] = useState<number>(6);
@@ -78,6 +71,21 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
 
   const { user } = useAuth();
   const api = useApiClient();
+
+  // Initialize from localStorage only once on component mount
+  useEffect(() => {
+    if (!initialized) {
+      const savedTask = localStorage.getItem('statistics-selected-task');
+      const savedTimeRange = localStorage.getItem('statistics-time-range');
+      const savedTab = localStorage.getItem('statistics-active-tab');
+      
+      if (savedTask) setSelectedTask(savedTask);
+      if (savedTimeRange) setTimeRange(savedTimeRange);
+      if (savedTab) setActiveTab(savedTab);
+      
+      setInitialized(true);
+    }
+  }, [initialized]);
 
   // Fetch daily totals from API
   const fetchDailyTotals = async () => {
@@ -216,12 +224,15 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
   };
 
   useEffect(() => {
-    fetchDailyTotals();
-    fetchTotalHours();
-    fetchTrackerHours();
-    fetchProductivityData();
+    // Only fetch data after initialization is complete
+    if (initialized) {
+      fetchDailyTotals();
+      fetchTotalHours();
+      fetchTrackerHours();
+      fetchProductivityData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, timeRange, selectedTask]);
+  }, [user?.id, timeRange, selectedTask, initialized]);
 
   return (
     <div className="space-y-6">
