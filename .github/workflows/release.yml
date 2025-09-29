@@ -1,0 +1,37 @@
+name: Build & Publish Electron App
+
+on:
+  push:
+    tags:
+      - "v*" # triggers on version tags like v1.0.0
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9 # latest stable major
+          run_install: false
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build & Publish
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: pnpm run publish:always

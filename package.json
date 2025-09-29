@@ -24,7 +24,26 @@
         "owner": "dev-sam17",
         "repo": "focus-forge"
       }
-    ]
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "scripts": {
     "dev": "npm-run-all --parallel dev:react dev:electron",
