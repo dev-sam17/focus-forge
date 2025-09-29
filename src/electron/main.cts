@@ -19,17 +19,30 @@ let mainWindow: BrowserWindow | null = null;
 let forceQuit = false;
 
 function createWindow() {
+  // Configure title bar based on platform
+  const titleBarConfig = process.platform === 'darwin' 
+    ? {
+        // macOS: Use hidden-inset to show traffic lights on the left
+        frame: false,
+        titleBarStyle: "hiddenInset" as const,
+        titleBarOverlay: false,
+      }
+    : {
+        // Windows/Linux: Use custom title bar overlay
+        frame: true,
+        titleBarStyle: "hidden" as const,
+        titleBarOverlay: {
+          color: "#ffffff00",
+          symbolColor: "#ffffff",
+          height: 30,
+        },
+      };
+
   mainWindow = new BrowserWindow({
     title: "Focus Forge",
     width: 850,
     height: 600,
-    frame: true,
-    titleBarStyle: "hidden",
-    titleBarOverlay: {
-      color: "#ffffff00",
-      symbolColor: "#ffffff",
-      height: 30,
-    },
+    ...titleBarConfig,
     webPreferences: {
       preload: getPreloadPath(),
       contextIsolation: true,
