@@ -2,8 +2,10 @@ name: Build & Publish Electron App
 
 on:
   push:
+    branches:
+      - main
     tags:
-      - "v*" # triggers on version tags like v1.0.0
+      - "v*"
 
 jobs:
   build:
@@ -11,7 +13,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -22,11 +23,11 @@ jobs:
           node-version: 22
           cache: "pnpm"
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.15.0 # latest stable major
-          run_install: true
+      - name: Enable corepack & install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm --version
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
