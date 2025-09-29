@@ -47,8 +47,22 @@
       "target": [
         "AppImage",
         "deb"
-      ]
-    }
+      ],
+      "category": "Utility",
+      "desktop": {
+        "MimeType": "x-scheme-handler/focus-forge;",
+        "StartupWMClass": "Focus Forge"
+      },
+      "executableName": "focus-forge"
+    },
+    "protocols": [
+      {
+        "name": "focus-forge",
+        "schemes": [
+          "focus-forge"
+        ]
+      }
+    ]
   },
   "scripts": {
     "dev": "npm-run-all --parallel dev:react dev:electron",

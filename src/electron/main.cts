@@ -215,7 +215,25 @@ if (!gotTheLock) {
     createTray();
 
     // Register as protocol client after app is ready
-    app.setAsDefaultProtocolClient("focus-forge");
+    // On Linux, this needs to be done with proper path handling
+    if (process.platform === 'linux') {
+      // For Linux, we need to ensure the protocol is registered with the correct executable path
+      if (app.isPackaged) {
+        const success = app.setAsDefaultProtocolClient("focus-forge", process.execPath);
+        console.log(`Linux protocol registration (packaged): ${success ? 'SUCCESS' : 'FAILED'}`);
+        console.log(`Executable path: ${process.execPath}`);
+      } else {
+        // In development, use the electron executable
+        const success = app.setAsDefaultProtocolClient("focus-forge", process.execPath, [process.cwd()]);
+        console.log(`Linux protocol registration (dev): ${success ? 'SUCCESS' : 'FAILED'}`);
+        console.log(`Executable path: ${process.execPath}`);
+        console.log(`Working directory: ${process.cwd()}`);
+      }
+    } else {
+      // For Windows and macOS, the simple registration works
+      const success = app.setAsDefaultProtocolClient("focus-forge");
+      console.log(`Protocol registration (${process.platform}): ${success ? 'SUCCESS' : 'FAILED'}`);
+    }
 
     // Handle deep link if app launched via protocol (Windows/Linux first instance)
     const deeplink = process.argv.find((arg) =>
