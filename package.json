@@ -9,6 +9,7 @@
   "main": "dist-electron/main.cjs",
   "build": {
     "appId": "com.dev-sam17.focus-forge",
+    "productName": "Focus Forge",
     "files": [
       "dist-electron",
       "dist-react"
