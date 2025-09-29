@@ -1,7 +1,7 @@
 {
   "name": "focus-forge-app",
   "private": true,
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "A lightweight, desktop productivity application built with **Electron**, **React**, and **Supabase**. Focus Forge helps you track time and forge better focus habits.",
   "author": {
     "name": "Saurav Kumar",
