@@ -50,10 +50,15 @@
       ],
       "category": "Utility",
       "desktop": {
-        "MimeType": "x-scheme-handler/focus-forge;",
-        "StartupWMClass": "Focus Forge"
+        "entry": {
+          "MimeType": "x-scheme-handler/focus-forge;",
+          "StartupWMClass": "Focus Forge"
+        }
       },
-      "executableName": "focus-forge"
+      "executableName": "focus-forge",
+      "mimeTypes": [
+        "x-scheme-handler/focus-forge"
+      ]
     },
     "protocols": [
       {
