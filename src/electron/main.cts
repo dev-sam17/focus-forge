@@ -73,13 +73,15 @@ function createWindow() {
   });
 
   // Prevent window from being closed
-  mainWindow.on("close", (event) => {
-    if (!forceQuit) {
-      event.preventDefault();
-      mainWindow?.hide();
-      return false;
-    }
-  });
+  if(process.platform === "win32"){
+    mainWindow.on("close", (event) => {
+      if (!forceQuit) {
+        event.preventDefault();
+        mainWindow?.hide();
+        return false;
+      }
+    });
+  }
 
   pollResources(mainWindow);
 
@@ -225,7 +227,9 @@ if (!gotTheLock) {
 } else {
   app.whenReady().then(() => {
     mainWindow = createWindow();
-    createTray();
+    if(process.platform === "win32"){
+      createTray();
+    }
 
     // Register as protocol client after app is ready
     // On Linux, this needs to be done with proper path handling
