@@ -96,7 +96,7 @@ export default function EditTrackerDialog({
 
       // Parse work days
       const workDaysArray = tracker.workDays
-        ? tracker.workDays.split(",").map(Number).filter(Boolean)
+        ? tracker.workDays.split(",").map(Number).filter(num => !isNaN(num) && num >= 0 && num <= 6)
         : [];
       setSelectedDays(workDaysArray);
     }

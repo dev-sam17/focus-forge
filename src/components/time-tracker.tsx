@@ -13,6 +13,14 @@ import {
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import {
   Play,
   Square,
   Clock,
@@ -46,8 +54,8 @@ export default function TimeTracker({
   onEdit,
 }: TimeTrackerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
-
   const [isRunning, setIsRunning] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [workStats, setWorkStats] = useState<WorkStats>({
     workAdvance: 0,
     workDebt: 0,
@@ -113,16 +121,16 @@ export default function TimeTracker({
   };
 
   const handleArchive = () => {
-    if (isRunning) {
-      if (
-        !confirm(
-          "This tracker is currently running. Are you sure you want to archive it?"
-        )
-      ) {
-        return;
-      }
-    }
+    setShowArchiveDialog(true);
+  };
+
+  const confirmArchive = () => {
+    setShowArchiveDialog(false);
     onArchive(task.id);
+  };
+
+  const cancelArchive = () => {
+    setShowArchiveDialog(false);
   };
 
   const handleEdit = () => {
@@ -130,179 +138,204 @@ export default function TimeTracker({
   };
 
   return (
-    <Card className="anime-card glass border-0 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-all duration-300 group overflow-hidden h-[400px]">
-      {/* Gradient border effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="relative bg-card rounded-xl m-px h-full flex flex-col">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 p-3 border-b border-border/50 flex-shrink-0">
-          <div className="flex justify-between items-start">
-            <div className="space-y-1 min-w-0 flex-1">
-              <CardTitle className="text-base font-semibold gradient-text truncate">
-                {task.trackerName}
-              </CardTitle>
-              <div className="h-4">
-                <p className="text-xs text-muted-foreground line-clamp-1">
-                  {task.description || ""}
-                </p>
-              </div>
-            </div>
-            <Badge
-              variant={isRunning ? "default" : "outline"}
-              className={`text-xs font-medium ${
-                isRunning
-                  ? "bg-gradient-to-r from-success to-success/80 text-white anime-glow border-0"
-                  : "border-border/50"
-              }`}
-            >
-              {isRunning ? (
-                <>
-                  <Disc className="w-3 h-3 mr-1 animate-spin" />
-                  Active
-                </>
-              ) : (
-                "Inactive"
-              )}
-            </Badge>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-3 flex-1 flex flex-col">
-          <div className="space-y-3 flex-1">
-            {/* Timer Display */}
-            <div className="text-center space-y-1">
-              <div className="relative">
-                <div
-                  className={`text-2xl font-mono font-bold flex items-center justify-center ${
-                    isRunning ? "text-primary anime-glow" : "text-foreground"
-                  }`}
-                >
-                  <Clock className="mr-1 h-4 w-4" />
-                  {formatTime(elapsedTime)}
+    <>
+      <Card className="anime-card glass border-0 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-all duration-300 group overflow-hidden min-h-[400px] max-h-[450px]">
+        {/* Gradient border effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="relative bg-card rounded-xl m-px h-full flex flex-col">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 p-3 border-b border-border/50 flex-shrink-0">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1 min-w-0 flex-1">
+                <CardTitle className="text-base font-semibold gradient-text truncate">
+                  {task.trackerName}
+                </CardTitle>
+                <div className="h-4">
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {task.description || ""}
+                  </p>
                 </div>
-                {isRunning && (
-                  <div className="absolute inset-0 bg-primary/10 rounded-lg blur-xl animate-pulse" />
+              </div>
+              <Badge
+                variant={isRunning ? "default" : "outline"}
+                className={`text-xs font-medium ${
+                  isRunning
+                    ? "bg-gradient-to-r from-success to-success/80 text-white anime-glow border-0"
+                    : "border-border/50"
+                }`}
+              >
+                {isRunning ? (
+                  <>
+                    <Disc className="w-3 h-3 mr-1 animate-spin" />
+                    Active
+                  </>
+                ) : (
+                  "Inactive"
                 )}
-              </div>
-
-              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                <Target className="w-3 h-3" />
-                <span>
-                  Goal:{" "}
-                  <span className="font-semibold text-foreground">
-                    {task.targetHours}h
-                  </span>
-                </span>
-              </div>
+              </Badge>
             </div>
+          </CardHeader>
 
-            {/* Work Days */}
-            <div className="flex justify-center gap-1">
-              {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => {
-                const workDaysArray = task.workDays.split(",").map(Number);
-                const isActive = workDaysArray.includes(index);
-                return (
+          <CardContent className="p-3 flex-1 flex flex-col overflow-hidden">
+            <div className="space-y-3 flex-1 min-h-0">
+              {/* Timer Display */}
+              <div className="text-center space-y-1">
+                <div className="relative">
                   <div
-                    key={index}
-                    className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-all duration-200 ${
-                      isActive
-                        ? "bg-gradient-to-r from-primary to-accent text-white shadow-sm"
-                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    className={`text-2xl font-mono font-bold flex items-center justify-center ${
+                      isRunning ? "text-primary anime-glow" : "text-foreground"
                     }`}
                   >
-                    {day}
+                    <Clock className="mr-1 h-4 w-4" />
+                    {formatTime(elapsedTime)}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Work Stats - Always at bottom */}
-          {workStats && (
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <div className="glass rounded-md p-2 text-center space-y-1 border border-destructive/20">
-                <div className="flex items-center justify-center gap-1 text-destructive">
-                  <TrendingDown className="w-3 h-3" />
-                  <span className="text-xs font-medium">Debt</span>
+                  {isRunning && (
+                    <div className="absolute inset-0 bg-primary/10 rounded-lg blur-xl animate-pulse" />
+                  )}
                 </div>
-                <div className="text-sm font-bold text-destructive">
-                  {workStats.workDebt}h
+
+                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                  <Target className="w-3 h-3" />
+                  <span>
+                    Goal:{" "}
+                    <span className="font-semibold text-foreground">
+                      {task.targetHours}h
+                    </span>
+                  </span>
                 </div>
               </div>
-              <div className="glass rounded-md p-2 text-center space-y-1 border border-success/20">
-                <div className="flex items-center justify-center gap-1 text-success">
-                  <TrendingUp className="w-3 h-3" />
-                  <span className="text-xs font-medium">Advance</span>
-                </div>
-                <div className="text-sm font-bold text-success">
-                  {workStats.workAdvance}h
-                </div>
+
+              {/* Work Days */}
+              <div className="flex justify-center gap-1">
+                {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => {
+                  const workDaysArray = task.workDays.split(",").map(Number);
+                  const isActive = workDaysArray.includes(index);
+                  return (
+                    <div
+                      key={index}
+                      className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-gradient-to-r from-primary to-accent text-white shadow-sm"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          )}
-        </CardContent>
 
-        <CardFooter className="p-3 pt-0 space-y-2 flex-shrink-0">
-          {/* Primary Actions */}
-          <div className="flex gap-2 w-full">
-            <Button
-              variant={isRunning ? "outline" : "default"}
-              size="sm"
-              onClick={handleStart}
-              className={`flex-1 h-8 font-medium transition-all duration-300 text-xs ${
-                isRunning
-                  ? "border-primary/50 text-primary hover:bg-primary/10"
-                  : "bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl hover:shadow-primary/25"
-              }`}
-              disabled={isRunning}
-            >
-              {isRunning ? (
-                <>
-                  <Disc className="h-3 w-3 mr-1 animate-spin" />
-                  Running
-                </>
-              ) : (
-                <>
-                  <Play className="h-3 w-3 mr-1" />
-                  Start
-                </>
-              )}
-            </Button>
+            {/* Work Stats - Compact version */}
+            {workStats && (
+              <div className="grid grid-cols-2 gap-2 mt-2 flex-shrink-0">
+                <div className="glass rounded-md p-1.5 text-center space-y-0.5 border border-destructive/20">
+                  <div className="flex items-center justify-center gap-1 text-destructive">
+                    <TrendingDown className="w-3 h-3" />
+                    <span className="text-xs font-medium">Debt</span>
+                  </div>
+                  <div className="text-sm font-bold text-destructive">
+                    {workStats.workDebt}h
+                  </div>
+                </div>
+                <div className="glass rounded-md p-1.5 text-center space-y-0.5 border border-success/20">
+                  <div className="flex items-center justify-center gap-1 text-success">
+                    <TrendingUp className="w-3 h-3" />
+                    <span className="text-xs font-medium">Advance</span>
+                  </div>
+                  <div className="text-sm font-bold text-success">
+                    {workStats.workAdvance}h
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleStop}
-              className="flex-1 h-8 font-medium border-destructive/50 text-destructive hover:bg-destructive/10 transition-all duration-300 text-xs"
-              disabled={elapsedTime === 0}
-            >
-              <Square className="h-3 w-3 mr-1" />
-              Stop
-            </Button>
-          </div>
+          <CardFooter className="p-3 pt-2 space-y-2 flex-shrink-0 border-t border-border/30">
+            {/* Primary Actions */}
+            <div className="flex gap-2 w-full">
+              <Button
+                variant={isRunning ? "outline" : "default"}
+                size="sm"
+                onClick={handleStart}
+                className={`flex-1 h-8 font-medium transition-all duration-300 text-xs ${
+                  isRunning
+                    ? "border-primary/50 text-primary hover:bg-primary/10"
+                    : "bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl hover:shadow-primary/25"
+                }`}
+                disabled={isRunning}
+              >
+                {isRunning ? (
+                  <>
+                    <Disc className="h-3 w-3 mr-1 animate-spin" />
+                    Running
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-3 w-3 mr-1" />
+                    Start
+                  </>
+                )}
+              </Button>
 
-          {/* Secondary Actions */}
-          <div className="flex gap-2 w-full">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleEdit}
-              className="flex-1 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 text-xs min-h-[32px]"
-            >
-              <Edit className="h-3 w-3 mr-1" />
-              Edit
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStop}
+                className="flex-1 h-8 font-medium border-destructive/50 text-destructive hover:bg-destructive/10 transition-all duration-300 text-xs"
+                disabled={elapsedTime === 0}
+              >
+                <Square className="h-3 w-3 mr-1" />
+                Stop
+              </Button>
+            </div>
+
+            {/* Secondary Actions - Minimal buttons */}
+            <div className="flex gap-1 w-full justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEdit}
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300"
+                title="Edit tracker"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleArchive}
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300"
+                title="Archive tracker"
+              >
+                <Archive className="h-3 w-3" />
+              </Button>
+            </div>
+          </CardFooter>
+        </div>
+      </Card>
+
+      {/* Archive Confirmation Dialog */}
+      <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Archive Tracker</DialogTitle>
+            <DialogDescription>
+              {isRunning 
+                ? "This tracker is currently running. Are you sure you want to archive it?"
+                : `Are you sure you want to archive "${task.trackerName}"? You can restore it from the Archives tab later.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelArchive}>
+              Cancel
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleArchive}
-              className="flex-1 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 text-xs min-h-[32px]"
-            >
-              <Archive className="h-3 w-3 mr-1" />
+            <Button variant="destructive" onClick={confirmArchive}>
               Archive
             </Button>
-          </div>
-        </CardFooter>
-      </div>
-    </Card>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
