@@ -1,5 +1,4 @@
 import {
-  Clock,
   Sparkles,
   Sun,
   Moon,
@@ -25,17 +24,18 @@ export default function TitleBar({
   onBackClick,
 }: TitleBarProps) {
   const { theme, toggleTheme } = useTheme();
-  
+
   // Detect if we're on macOS
-  const isMacOS = typeof window !== 'undefined' && window.navigator.platform.includes('Mac');
+  const isMacOS =
+    typeof window !== "undefined" && window.navigator.platform.includes("Mac");
 
   return (
     <div
-      className="bg-gradient-to-r from-primary/90 to-accent/90 backdrop-blur-sm h-[30px] text-white font-medium fixed top-0 left-0 right-0 z-50 flex items-center justify-between shadow-lg border-b border-white/10"
+      className="bg-gradient-to-r from-primary/90 to-accent/90 backdrop-blur-sm h-[30px] text-white font-medium fixed top-0 left-0 right-0 z-50 flex items-center gap-3 shadow-lg border-b border-white/10"
       style={{ "-webkit-app-region": "drag" }}
     >
       {/* Left side - macOS traffic lights space + App branding */}
-      <div className={`flex items-center gap-2 ${isMacOS ? 'ml-20' : 'ml-3'}`}>
+      <div className={`flex items-center gap-2 ${isMacOS ? "ml-20" : "ml-2"}`}>
         {showBackButton && (
           <button
             onClick={onBackClick}
@@ -46,9 +46,9 @@ export default function TitleBar({
             <ArrowLeft className="w-3 h-3" />
           </button>
         )}
-        <div className="w-5 h-5 bg-white/20 rounded-md flex items-center justify-center">
+        {/* <div className="w-5 h-5 bg-white/20 rounded-md flex items-center justify-center">
           <Clock className="w-3 h-3" />
-        </div>
+        </div> */}
         <span className="text-sm font-semibold tracking-wide flex items-center gap-1">
           Focus Forge
           <Sparkles className="w-3 h-3 opacity-70" />
@@ -77,7 +77,7 @@ export default function TitleBar({
 
       {/* Right side - Theme toggle (avoiding window controls on Windows/Linux) */}
       <div
-        className={`flex items-center gap-2 ${isMacOS ? 'mr-3' : 'mr-16'}`}
+        className={`flex items-center gap-2 mr-2`}
         style={{ "-webkit-app-region": "no-drag" }}
       >
         {/* Theme Toggle */}
