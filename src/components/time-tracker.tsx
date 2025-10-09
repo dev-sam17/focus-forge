@@ -21,10 +21,12 @@ import {
   Target,
   TrendingUp,
   TrendingDown,
+  Edit,
 } from "lucide-react";
 import type { Tracker, ActiveSession, WorkStats } from "../lib/types";
 import { formatTime } from "../lib/utils";
 import useApiClient from "../hooks/useApiClient";
+import { useAuth } from "../contexts/AuthContext";
 
 interface TimeTrackerProps {
   task: Tracker;
@@ -32,6 +34,7 @@ interface TimeTrackerProps {
   onStart: () => void;
   onStop: (taskId: string, elapsedTime: number) => void;
   onArchive: (taskId: string) => void;
+  onEdit: (taskId: string) => void;
 }
 
 export default function TimeTracker({
@@ -40,6 +43,7 @@ export default function TimeTracker({
   onStart,
   onStop,
   onArchive,
+  onEdit,
 }: TimeTrackerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -50,7 +54,8 @@ export default function TimeTracker({
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const api = useApiClient();
+  const { user } = useAuth();
+  const api = useApiClient(user?.id);
 
   // Initialize from session if available
   useEffect(() => {
@@ -118,6 +123,10 @@ export default function TimeTracker({
       }
     }
     onArchive(task.id);
+  };
+
+  const handleEdit = () => {
+    onEdit(task.id);
   };
 
   return (
@@ -271,15 +280,27 @@ export default function TimeTracker({
             </Button>
           </div>
 
-          {/* Archive Action */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleArchive}
-            className=" h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 text-xs min-h-[32px]"
-          >
-            <Archive className="h-3 w-3 mr-1" />
-          </Button>
+          {/* Secondary Actions */}
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEdit}
+              className="flex-1 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 text-xs min-h-[32px]"
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleArchive}
+              className="flex-1 h-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 text-xs min-h-[32px]"
+            >
+              <Archive className="h-3 w-3 mr-1" />
+              Archive
+            </Button>
+          </div>
         </CardFooter>
       </div>
     </Card>

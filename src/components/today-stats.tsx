@@ -25,7 +25,7 @@ export default function TodayStatsComponent({ selectedTask }: TodayStatsProps) {
   const [isTodayLoading, setIsTodayLoading] = useState(true);
 
   const { user } = useAuth();
-  const api = useApiClient();
+  const api = useApiClient(user?.id);
 
   // Fetch today's stats from API
   const fetchTodayStats = async () => {

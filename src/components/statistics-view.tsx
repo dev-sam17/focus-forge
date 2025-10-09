@@ -70,7 +70,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
   );
 
   const { user } = useAuth();
-  const api = useApiClient();
+  const api = useApiClient(user?.id);
 
   // Initialize from localStorage only once on component mount
   useEffect(() => {

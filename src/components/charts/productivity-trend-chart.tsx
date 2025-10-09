@@ -35,7 +35,6 @@ export default function ProductivityTrendChart({
   productivityData,
 }: ProductivityTrendChartProps) {
   const [data, setData] = useState<ChartData[]>([]);
-  console.log(productivityData);
 
   useEffect(() => {
     // Transform API data for chart display

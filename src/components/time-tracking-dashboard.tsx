@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import TimeTracker from "./time-tracker";
 import ArchivedTracker from "./archived-tracker";
+import EditTrackerDialog from "./edit-tracker-dialog";
 import type { Tracker, ActiveSession, NewTracker } from "../lib/types";
 import AddTaskDialog from "./add-task";
 import useApiClient from "../hooks/useApiClient";
@@ -37,6 +38,8 @@ export default function TimeTrackingDashboard({
     // Get the last selected tab from localStorage, default to "trackers"
     return localStorage.getItem('dashboard-active-tab') || 'trackers';
   });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [trackerToEdit, setTrackerToEdit] = useState<Tracker | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -73,11 +76,11 @@ export default function TimeTrackingDashboard({
     }
   }, [userInactive]);
 
-  const api = useApiClient();
+  const api = useApiClient(user?.id);
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const fetchTasks = async () => {
-    const res = await api<Tracker[]>(`/trackers?userId=${user?.id}`);
+    const res = await api<Tracker[]>(`/trackers`);
     if (res.success && res.data) {
       setTasks(res.data);
     }
@@ -197,6 +200,26 @@ export default function TimeTrackingDashboard({
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     localStorage.setItem('dashboard-active-tab', value);
+  };
+
+  // Handle edit tracker
+  const handleEditTracker = (taskId: string) => {
+    const tracker = tasks.find(t => t.id === taskId);
+    if (tracker) {
+      setTrackerToEdit(tracker);
+      setEditDialogOpen(true);
+    }
+  };
+
+  // Handle edit dialog close
+  const handleEditDialogClose = () => {
+    setEditDialogOpen(false);
+    setTrackerToEdit(null);
+  };
+
+  // Handle edit success
+  const handleEditSuccess = () => {
+    fetchTasks(); // Refresh the tasks list
   };
 
   // Show loading state
@@ -325,6 +348,7 @@ export default function TimeTrackingDashboard({
                     onStart={() => handleSessionStart(task.id)}
                     onStop={() => handleSessionEnd(task.id)}
                     onArchive={handleArchiveTask}
+                    onEdit={handleEditTracker}
                   />
                 </div>
               ))}
@@ -377,6 +401,14 @@ export default function TimeTrackingDashboard({
           <StatisticsView tasks={activeTasks} />
         </TabsContent>
       </Tabs>
+
+      {/* Edit Tracker Dialog */}
+      <EditTrackerDialog
+        isOpen={editDialogOpen}
+        onClose={handleEditDialogClose}
+        tracker={trackerToEdit}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }
