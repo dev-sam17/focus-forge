@@ -36,7 +36,7 @@ export default function TimeTrackingDashboard({
   const [userInactive, setUserInactive] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>(() => {
     // Get the last selected tab from localStorage, default to "trackers"
-    return localStorage.getItem('dashboard-active-tab') || 'trackers';
+    return localStorage.getItem("dashboard-active-tab") || "trackers";
   });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [trackerToEdit, setTrackerToEdit] = useState<Tracker | null>(null);
@@ -199,12 +199,12 @@ export default function TimeTrackingDashboard({
   // Handle tab change and save to localStorage
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    localStorage.setItem('dashboard-active-tab', value);
+    localStorage.setItem("dashboard-active-tab", value);
   };
 
   // Handle edit tracker
   const handleEditTracker = (taskId: string) => {
-    const tracker = tasks.find(t => t.id === taskId);
+    const tracker = tasks.find((t) => t.id === taskId);
     if (tracker) {
       setTrackerToEdit(tracker);
       setEditDialogOpen(true);
@@ -244,14 +244,14 @@ export default function TimeTrackingDashboard({
 
               {/* Title */}
               <h3 className="text-lg font-semibold text-destructive">
-                {!isOnline ? "Connection Lost" : "Server Unavailable"}
+                {!isOnline ? "Connection Lost" : "Server Offline"}
               </h3>
 
               {/* Description */}
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {!isOnline
-                  ? "Unable to connect to the internet. Please check your network connection and try again."
-                  : "Cannot reach the server at this time. The service may be temporarily unavailable."}
+                  ? "Unable to connect to the internet. Please check your network connection."
+                  : "Cannot reach the server. The service may be temporarily unavailable."}
               </p>
 
               {/* Status indicator */}
@@ -270,7 +270,11 @@ export default function TimeTrackingDashboard({
 
   return (
     <div className="space-y-8 min-h-[calc(100vh-12rem)]">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full anime-slide-up">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full anime-slide-up"
+      >
         <div className="flex items-center justify-between mb-2">
           <TabsList className="glass bg-card/50 backdrop-blur-sm border-0 p-1 rounded-2xl shadow-lg">
             <TabsTrigger
@@ -313,7 +317,32 @@ export default function TimeTrackingDashboard({
 
         <TabsContent value="trackers" className="space-y-8 anime-slide-up">
           {/* Active Trackers Grid */}
-          {activeTasks.length === 0 ? (
+          {!isOnline || !isBackendAvailable ? (
+            <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
+              <div className="glass border border-destructive/30 bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent rounded-2xl p-8 text-center space-y-4 max-w-md">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-full flex items-center justify-center mx-auto border border-destructive/30">
+                    {!isOnline ? (
+                      <WifiOff className="h-8 w-8 text-destructive animate-pulse" />
+                    ) : (
+                      <ServerOff className="h-8 w-8 text-destructive animate-pulse" />
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl animate-pulse mx-auto" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-destructive mb-2">
+                    {!isOnline ? "Connection Lost" : "Server Offline"}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {!isOnline
+                      ? "Unable to connect to the internet. Please check your network connection."
+                      : "Cannot reach the server. The service may be temporarily unavailable."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : activeTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
               <div className="glass rounded-2xl p-8 text-center space-y-4 max-w-md">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center mx-auto anime-float">
@@ -357,7 +386,32 @@ export default function TimeTrackingDashboard({
         </TabsContent>
 
         <TabsContent value="archives" className="space-y-8 anime-slide-up">
-          {archivedTasks.length === 0 ? (
+          {!isOnline || !isBackendAvailable ? (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+              <div className="glass border border-destructive/30 bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent rounded-2xl p-8 text-center space-y-4 max-w-md">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-full flex items-center justify-center mx-auto border border-destructive/30">
+                    {!isOnline ? (
+                      <WifiOff className="h-8 w-8 text-destructive animate-pulse" />
+                    ) : (
+                      <ServerOff className="h-8 w-8 text-destructive animate-pulse" />
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl animate-pulse mx-auto" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-destructive mb-2">
+                    {!isOnline ? "Connection Lost" : "Server Offline"}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {!isOnline
+                      ? "Unable to connect to the internet. Please check your network connection."
+                      : "Cannot reach the server. The service may be temporarily unavailable."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : archivedTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
               <div className="glass rounded-2xl p-8 text-center space-y-4 max-w-md">
                 <div className="w-16 h-16 bg-gradient-to-r from-muted to-muted-foreground/20 rounded-2xl flex items-center justify-center mx-auto">
