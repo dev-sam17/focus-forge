@@ -6,9 +6,9 @@ interface IdleMonitor {
 
 // Configuration
 const DEFAULT_CONFIG = {
-  idleThresholdSeconds: 180, // 3 minutes
+  idleThresholdSeconds: 300, // 5 minutes
   checkIntervalMs: 5000, // Check every 5 seconds
-  debug: false,
+  debug: true,
 };
 
 export function startIdleMonitoring(
@@ -40,14 +40,38 @@ export function startIdleMonitoring(
     checkIdleTime(); // Initial check
     intervalId = setInterval(checkIdleTime, checkIntervalMs);
 
+    if (debug) {
+      console.debug("[Activity Monitor] Started monitoring");
+    }
+  }
+
+  // Setup event listeners
+  function setupEventListeners() {
     // Handle normal app quit
     appInstance.on("before-quit", cleanup);
 
     // Handle system shutdown/restart
     powerMonitor.on("shutdown", cleanup);
-    powerMonitor.on("suspend", cleanup);
 
-    // Handle window close
+    // Handle system sleep - stop monitoring
+    powerMonitor.on("suspend", () => {
+      if (debug) {
+        console.debug(
+          "[Activity Monitor] System suspended, pausing monitoring"
+        );
+      }
+      stop();
+    });
+
+    // Handle system wake - restart monitoring
+    powerMonitor.on("resume", () => {
+      if (debug) {
+        console.debug(
+          "[Activity Monitor] System resumed, restarting monitoring"
+        );
+      }
+      start();
+    });
 
     function cleanup() {
       if (!mainWindow.isDestroyed()) {
@@ -65,6 +89,8 @@ export function startIdleMonitoring(
     intervalId = null;
   }
 
+  // Setup event listeners first, then start monitoring
+  setupEventListeners();
   start();
 
   return {
