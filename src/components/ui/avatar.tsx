@@ -25,6 +25,7 @@ function AvatarImage({
   return (
     <AvatarPrimitive.Image
       className={cn("aspect-square h-full w-full", className)}
+      referrerPolicy="no-referrer"
       {...props}
     />
   );
