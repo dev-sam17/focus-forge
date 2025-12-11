@@ -40,6 +40,9 @@ export default function TimeTrackingDashboard({
   });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [trackerToEdit, setTrackerToEdit] = useState<Tracker | null>(null);
+  const [autoStopTimerId, setAutoStopTimerId] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const { user } = useAuth();
 
   useEffect(() => {
@@ -47,20 +50,97 @@ export default function TimeTrackingDashboard({
     return () => unsubscribe();
   }, []);
 
+  // Control activity monitor based on active sessions
+  useEffect(() => {
+    const hasActiveSessions = Object.keys(activeSessions).length > 0;
+
+    if (window.electron?.activityMonitor) {
+      if (hasActiveSessions) {
+        window.electron.activityMonitor.start();
+      } else {
+        window.electron.activityMonitor.stop();
+      }
+    }
+  }, [activeSessions]);
+
+  // Auto-stop timer logic
+  useEffect(() => {
+    const handleAutoStopSettingsChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        enabled: boolean;
+        duration: number;
+      }>;
+      const { enabled, duration } = customEvent.detail;
+
+      if (autoStopTimerId) {
+        clearTimeout(autoStopTimerId);
+        setAutoStopTimerId(null);
+      }
+
+      if (enabled && Object.keys(activeSessions).length > 0) {
+        const timeoutMs = duration * 60 * 1000;
+        const timerId = setTimeout(() => {
+          stopAllActiveSessions();
+        }, timeoutMs);
+        setAutoStopTimerId(timerId);
+      }
+    };
+
+    window.addEventListener(
+      "autostop-settings-changed",
+      handleAutoStopSettingsChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        "autostop-settings-changed",
+        handleAutoStopSettingsChange
+      );
+      if (autoStopTimerId) {
+        clearTimeout(autoStopTimerId);
+      }
+    };
+  }, [activeSessions, autoStopTimerId]);
+
+  // Initialize auto-stop timer when sessions start
+  useEffect(() => {
+    const hasActiveSessions = Object.keys(activeSessions).length > 0;
+    const autoStopEnabled =
+      localStorage.getItem("focus-forge-autostop-enabled") === "true";
+    const autoStopDuration =
+      Number(localStorage.getItem("focus-forge-autostop-duration")) || 60;
+
+    if (autoStopTimerId) {
+      clearTimeout(autoStopTimerId);
+      setAutoStopTimerId(null);
+    }
+
+    if (hasActiveSessions && autoStopEnabled) {
+      const timeoutMs = autoStopDuration * 60 * 1000;
+      const timerId = setTimeout(() => {
+        stopAllActiveSessions();
+      }, timeoutMs);
+      setAutoStopTimerId(timerId);
+    }
+  }, [activeSessions]);
+
   useEffect(() => {
     if (userInactive) {
       const stopAllSessions = async () => {
         try {
           if (Object.keys(activeSessions).length > 0) {
             const sessionsToStop = { ...activeSessions };
-            setActiveSessions({});
 
             await Promise.all(
               Object.values(sessionsToStop).map((session) =>
                 handleSessionEnd(session.trackerId)
               )
             );
-            window.location.reload();
+
+            // Clear active sessions and refresh data to update UI
+            setActiveSessions({});
+            await fetchActiveSessions();
+            await fetchTasks();
           }
         } catch (error) {
           console.error("Error stopping sessions:", error);
@@ -172,6 +252,28 @@ export default function TimeTrackingDashboard({
     if (res.success) {
       fetchTasks();
       fetchActiveSessions();
+    }
+  };
+
+  const stopAllActiveSessions = async () => {
+    try {
+      if (Object.keys(activeSessions).length > 0) {
+        const sessionsToStop = { ...activeSessions };
+
+        await Promise.all(
+          Object.values(sessionsToStop).map((session) =>
+            handleSessionEnd(session.trackerId)
+          )
+        );
+
+        // Fetch fresh data from server which will update activeSessions state
+        await fetchActiveSessions();
+        await fetchTasks();
+      }
+    } catch (error) {
+      console.error("Error stopping all sessions:", error);
+      await fetchActiveSessions();
+      await fetchTasks();
     }
   };
 

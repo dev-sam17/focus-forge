@@ -65,12 +65,16 @@ export default function TimeTracker({
   const { user } = useAuth();
   const api = useApiClient(user?.id);
 
-  // Initialize from session if available
+  // Initialize from session if available and sync isRunning state
   useEffect(() => {
     if (session) {
       const startTimestamp = new Date(session.startTime).getTime();
       setElapsedTime(Date.now() - startTimestamp);
       setIsRunning(true);
+    } else {
+      // If session is removed (e.g., by auto-stop), update local state
+      setIsRunning(false);
+      setElapsedTime(0);
     }
   }, [session]);
 
@@ -320,10 +324,9 @@ export default function TimeTracker({
           <DialogHeader>
             <DialogTitle>Archive Tracker</DialogTitle>
             <DialogDescription>
-              {isRunning 
+              {isRunning
                 ? "This tracker is currently running. Are you sure you want to archive it?"
-                : `Are you sure you want to archive "${task.trackerName}"? You can restore it from the Archives tab later.`
-              }
+                : `Are you sure you want to archive "${task.trackerName}"? You can restore it from the Archives tab later.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

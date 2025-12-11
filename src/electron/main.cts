@@ -316,7 +316,16 @@ if (!gotTheLock) {
     if (app.isPackaged) {
       setupAutoUpdater();
     }
-    activityMonitor = startIdleMonitoring(app, mainWindow);
+
+    // Initialize activity monitor but don't start it automatically
+    // The dashboard will control it based on whether trackers are running
+    activityMonitor = startIdleMonitoring(app, mainWindow, {
+      idleThresholdSeconds: 60,
+      checkIntervalMs: 5000,
+      debug: true,
+    });
+    // Stop it immediately after initialization
+    activityMonitor.stop();
   });
 }
 
