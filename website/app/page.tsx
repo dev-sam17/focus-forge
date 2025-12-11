@@ -209,15 +209,15 @@ export default function Home() {
       </div>
 
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 relative">
+        <section className="w-full py-6 md:py-12 lg:py-18 xl:py-24 relative">
           <div className="container mx-auto px-4 md:px-6">
             <motion.div
-              className="flex flex-col items-center space-y-8 text-center"
+              className="flex flex-col items-center space-y-4 text-center"
               initial="initial"
               animate="animate"
               variants={staggerContainer}
             >
-              <motion.div className="space-y-6" variants={fadeInUp}>
+              <motion.div className="space-y-3" variants={fadeInUp}>
                 <motion.div variants={fadeInUp}>
                   <Badge
                     className="mb-4 bg-gradient-to-r from-primary to-accent text-white border-0 px-4 py-1.5"
@@ -324,111 +324,109 @@ export default function Home() {
 
         <section
           id="features"
-          className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-muted/50 to-background"
+          className="w-full py-8 md:py-12 bg-gradient-to-b from-muted/50 to-background"
         >
           <div className="container mx-auto px-4 md:px-6">
             <motion.div
-              className="text-center mb-12"
+              className="text-center mb-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
+              <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl mb-2">
                 Powerful Features
               </h2>
-              <p className="mt-4 text-muted-foreground md:text-lg max-w-2xl mx-auto">
+              <p className="text-sm text-muted-foreground md:text-base max-w-2xl mx-auto">
                 Everything you need to boost your productivity and track your
                 time effectively
               </p>
             </motion.div>
             <motion.div
-              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               variants={staggerContainer}
             >
               <motion.div variants={fadeInUp}>
-                <Card className="h-full border-2 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <Timer className="h-6 w-6 text-primary" />
+                <Card className="border-2 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
+                  <CardHeader className="p-4">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+                      <Timer className="h-5 w-5 text-primary" />
                     </div>
-                    <CardTitle>Automatic Time Tracking</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-base">
+                      Automatic Time Tracking
+                    </CardTitle>
+                    <CardDescription className="text-sm">
                       Track your time automatically with activity monitoring.
-                      Know exactly where your time goes.
                     </CardDescription>
                   </CardHeader>
                 </Card>
               </motion.div>
               <motion.div variants={fadeInUp}>
-                <Card className="h-full border-2 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                      <Target className="h-6 w-6 text-accent" />
+                <Card className="border-2 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group">
+                  <CardHeader className="p-4">
+                    <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center mb-3 group-hover:bg-accent/20 transition-colors">
+                      <Target className="h-5 w-5 text-accent" />
                     </div>
-                    <CardTitle>Focus Sessions</CardTitle>
-                    <CardDescription>
-                      Use Pomodoro technique and focus timers to maintain
-                      concentration and productivity.
+                    <CardTitle className="text-base">Focus Sessions</CardTitle>
+                    <CardDescription className="text-sm">
+                      Use Pomodoro technique and focus timers.
                     </CardDescription>
                   </CardHeader>
                 </Card>
               </motion.div>
               <motion.div variants={fadeInUp}>
-                <Card className="h-full border-2 hover:border-chart-1/50 hover:shadow-lg hover:shadow-chart-1/10 transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-chart-1/10 flex items-center justify-center mb-4 group-hover:bg-chart-1/20 transition-colors">
-                      <BarChart3 className="h-6 w-6 text-chart-1" />
+                <Card className="border-2 hover:border-chart-1/50 hover:shadow-lg hover:shadow-chart-1/10 transition-all duration-300 group">
+                  <CardHeader className="p-4">
+                    <div className="h-10 w-10 rounded-lg bg-chart-1/10 flex items-center justify-center mb-3 group-hover:bg-chart-1/20 transition-colors">
+                      <BarChart3 className="h-5 w-5 text-chart-1" />
                     </div>
-                    <CardTitle>Analytics & Insights</CardTitle>
-                    <CardDescription>
-                      Visualize your productivity with beautiful charts and get
-                      actionable insights.
+                    <CardTitle className="text-base">
+                      Analytics & Insights
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      Visualize your productivity with beautiful charts.
                     </CardDescription>
                   </CardHeader>
                 </Card>
               </motion.div>
               <motion.div variants={fadeInUp}>
-                <Card className="h-full border-2 hover:border-chart-2/50 hover:shadow-lg hover:shadow-chart-2/10 transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-chart-2/10 flex items-center justify-center mb-4 group-hover:bg-chart-2/20 transition-colors">
-                      <Cloud className="h-6 w-6 text-chart-2" />
+                <Card className="border-2 hover:border-chart-2/50 hover:shadow-lg hover:shadow-chart-2/10 transition-all duration-300 group">
+                  <CardHeader className="p-4">
+                    <div className="h-10 w-10 rounded-lg bg-chart-2/10 flex items-center justify-center mb-3 group-hover:bg-chart-2/20 transition-colors">
+                      <Cloud className="h-5 w-5 text-chart-2" />
                     </div>
-                    <CardTitle>Cloud Sync</CardTitle>
-                    <CardDescription>
-                      Your data is securely stored in the cloud via Supabase.
-                      Access your productivity data from anywhere.
+                    <CardTitle className="text-base">Cloud Sync</CardTitle>
+                    <CardDescription className="text-sm">
+                      Securely stored in the cloud via Supabase.
                     </CardDescription>
                   </CardHeader>
                 </Card>
               </motion.div>
               <motion.div variants={fadeInUp}>
-                <Card className="h-full border-2 hover:border-chart-3/50 hover:shadow-lg hover:shadow-chart-3/10 transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-chart-3/10 flex items-center justify-center mb-4 group-hover:bg-chart-3/20 transition-colors">
-                      <Users className="h-6 w-6 text-chart-3" />
+                <Card className="border-2 hover:border-chart-3/50 hover:shadow-lg hover:shadow-chart-3/10 transition-all duration-300 group">
+                  <CardHeader className="p-4">
+                    <div className="h-10 w-10 rounded-lg bg-chart-3/10 flex items-center justify-center mb-3 group-hover:bg-chart-3/20 transition-colors">
+                      <Users className="h-5 w-5 text-chart-3" />
                     </div>
-                    <CardTitle>Cross-Platform</CardTitle>
-                    <CardDescription>
-                      Available for Windows, macOS, and Linux. One app for all
-                      your devices.
+                    <CardTitle className="text-base">Cross-Platform</CardTitle>
+                    <CardDescription className="text-sm">
+                      Available for Windows, macOS, and Linux.
                     </CardDescription>
                   </CardHeader>
                 </Card>
               </motion.div>
               <motion.div variants={fadeInUp}>
-                <Card className="h-full border-2 hover:border-chart-4/50 hover:shadow-lg hover:shadow-chart-4/10 transition-all duration-300 group">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-chart-4/10 flex items-center justify-center mb-4 group-hover:bg-chart-4/20 transition-colors">
-                      <Award className="h-6 w-6 text-chart-4" />
+                <Card className="border-2 hover:border-chart-4/50 hover:shadow-lg hover:shadow-chart-4/10 transition-all duration-300 group">
+                  <CardHeader className="p-4">
+                    <div className="h-10 w-10 rounded-lg bg-chart-4/10 flex items-center justify-center mb-3 group-hover:bg-chart-4/20 transition-colors">
+                      <Award className="h-5 w-5 text-chart-4" />
                     </div>
-                    <CardTitle>Open Source</CardTitle>
-                    <CardDescription>
-                      Fully open source and transparent. Contribute, customize,
-                      and make it your own.
+                    <CardTitle className="text-base">Open Source</CardTitle>
+                    <CardDescription className="text-sm">
+                      Fully open source and transparent.
                     </CardDescription>
                   </CardHeader>
                 </Card>
