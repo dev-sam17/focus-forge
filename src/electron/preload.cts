@@ -7,7 +7,6 @@ import type {
 
 const electron = require("electron");
 
-
 function ipcInvoke<Key extends keyof EventPayloadMapping>(
   key: Key,
   ...args: unknown[]
@@ -26,7 +25,6 @@ function ipcOn<Key extends keyof EventPayloadMapping>(
   electron.ipcRenderer.on(key, cb);
   return () => electron.ipcRenderer.off(key, cb);
 }
-
 
 const electronAPI = {
   subscribeStatistics: (callback: (stats: Statistics) => void) => {
@@ -51,13 +49,29 @@ const electronAPI = {
     return ipcInvoke("open-external", url);
   },
   onOAuthCallback: (callback: (url: string) => void) => {
-    // Return unsubscribe to prevent listener leaks
-    return ipcOn('oauth-callback', (url: string) => {
+    return ipcOn("oauth-callback", (url: string) => {
       callback(url);
     });
   },
+  activityMonitor: {
+    start: () => {
+      return ipcInvoke("activity-monitor-start");
+    },
+    stop: () => {
+      return ipcInvoke("activity-monitor-stop");
+    },
+    updateConfig: (config: {
+      idleThresholdSeconds?: number;
+      checkIntervalMs?: number;
+      debug?: boolean;
+    }) => {
+      return ipcInvoke("activity-monitor-update-config", config);
+    },
+    isRunning: () => {
+      return ipcInvoke("activity-monitor-is-running");
+    },
+  },
 };
-
 
 try {
   electron.contextBridge.exposeInMainWorld("electron", electronAPI);

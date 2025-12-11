@@ -8,7 +8,7 @@ import {
   ipcMain,
 } from "electron";
 import { join } from "node:path";
-import { startIdleMonitoring } from "./activityMonitor.cjs";
+import { startIdleMonitoring, type MonitorConfig } from "./activityMonitor.cjs";
 import { isDev } from "./util.cjs";
 import { pollResources } from "./resourceManager.cjs";
 import { getPreloadPath, getUIPath } from "./pathResolver.cjs";
@@ -17,26 +17,28 @@ import { setupAutoUpdater } from "./updater.cjs";
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 let forceQuit = false;
+let activityMonitor: ReturnType<typeof startIdleMonitoring> | null = null;
 
 function createWindow() {
   // Configure title bar based on platform
-  const titleBarConfig = process.platform === 'darwin' 
-    ? {
-        // macOS: Use hidden-inset to show traffic lights on the left
-        frame: false,
-        titleBarStyle: "hiddenInset" as const,
-        titleBarOverlay: false,
-      }
-    : {
-        // Windows/Linux: Use custom title bar overlay
-        frame: true,
-        titleBarStyle: "hidden" as const,
-        titleBarOverlay: {
-          color: "#ffffff00",
-          symbolColor: "#ffffff",
-          height: 30,
-        },
-      };
+  const titleBarConfig =
+    process.platform === "darwin"
+      ? {
+          // macOS: Use hidden-inset to show traffic lights on the left
+          frame: false,
+          titleBarStyle: "hiddenInset" as const,
+          titleBarOverlay: false,
+        }
+      : {
+          // Windows/Linux: Use custom title bar overlay
+          frame: true,
+          titleBarStyle: "hidden" as const,
+          titleBarOverlay: {
+            color: "#ffffff00",
+            symbolColor: "#ffffff",
+            height: 30,
+          },
+        };
 
   mainWindow = new BrowserWindow({
     title: "Focus Forge",
@@ -73,7 +75,7 @@ function createWindow() {
   });
 
   // Prevent window from being closed
-  if(process.platform === "win32"){
+  if (process.platform === "win32") {
     mainWindow.on("close", (event) => {
       if (!forceQuit) {
         event.preventDefault();
@@ -219,6 +221,41 @@ ipcMain.handle("open-external", async (_event, url: string) => {
   }
 });
 
+// IPC: Activity monitor controls
+ipcMain.handle("activity-monitor-start", async () => {
+  if (activityMonitor) {
+    activityMonitor.start();
+    return { success: true };
+  }
+  return { success: false, error: "Activity monitor not initialized" };
+});
+
+ipcMain.handle("activity-monitor-stop", async () => {
+  if (activityMonitor) {
+    activityMonitor.stop();
+    return { success: true };
+  }
+  return { success: false, error: "Activity monitor not initialized" };
+});
+
+ipcMain.handle(
+  "activity-monitor-update-config",
+  async (_event, config: Partial<MonitorConfig>) => {
+    if (activityMonitor) {
+      activityMonitor.updateConfig(config);
+      return { success: true };
+    }
+    return { success: false, error: "Activity monitor not initialized" };
+  }
+);
+
+ipcMain.handle("activity-monitor-is-running", async () => {
+  if (activityMonitor) {
+    return { running: activityMonitor.isRunning() };
+  }
+  return { running: false };
+});
+
 // Single instance lock - prevent multiple app instances
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -227,29 +264,46 @@ if (!gotTheLock) {
 } else {
   app.whenReady().then(() => {
     mainWindow = createWindow();
-    if(process.platform === "win32"){
+    if (process.platform === "win32") {
       createTray();
     }
 
     // Register as protocol client after app is ready
     // On Linux, this needs to be done with proper path handling
-    if (process.platform === 'linux') {
+    if (process.platform === "linux") {
       // For Linux, we need to ensure the protocol is registered with the correct executable path
       if (app.isPackaged) {
-        const success = app.setAsDefaultProtocolClient("focus-forge", process.execPath);
-        console.log(`Linux protocol registration (packaged): ${success ? 'SUCCESS' : 'FAILED'}`);
+        const success = app.setAsDefaultProtocolClient(
+          "focus-forge",
+          process.execPath
+        );
+        console.log(
+          `Linux protocol registration (packaged): ${
+            success ? "SUCCESS" : "FAILED"
+          }`
+        );
         console.log(`Executable path: ${process.execPath}`);
       } else {
         // In development, use the electron executable
-        const success = app.setAsDefaultProtocolClient("focus-forge", process.execPath, [process.cwd()]);
-        console.log(`Linux protocol registration (dev): ${success ? 'SUCCESS' : 'FAILED'}`);
+        const success = app.setAsDefaultProtocolClient(
+          "focus-forge",
+          process.execPath,
+          [process.cwd()]
+        );
+        console.log(
+          `Linux protocol registration (dev): ${success ? "SUCCESS" : "FAILED"}`
+        );
         console.log(`Executable path: ${process.execPath}`);
         console.log(`Working directory: ${process.cwd()}`);
       }
     } else {
       // For Windows and macOS, the simple registration works
       const success = app.setAsDefaultProtocolClient("focus-forge");
-      console.log(`Protocol registration (${process.platform}): ${success ? 'SUCCESS' : 'FAILED'}`);
+      console.log(
+        `Protocol registration (${process.platform}): ${
+          success ? "SUCCESS" : "FAILED"
+        }`
+      );
     }
 
     // Handle deep link if app launched via protocol (Windows/Linux first instance)
@@ -262,7 +316,7 @@ if (!gotTheLock) {
     if (app.isPackaged) {
       setupAutoUpdater();
     }
-    startIdleMonitoring(app, mainWindow);
+    activityMonitor = startIdleMonitoring(app, mainWindow);
   });
 }
 
