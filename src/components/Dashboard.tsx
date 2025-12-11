@@ -2,12 +2,10 @@ import TimeTrackingDashboard from "./time-tracking-dashboard";
 import { useState, useEffect } from "react";
 import { DashboardSkeleton } from "./ui/skeleton";
 import { Clock } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { Button } from "./ui/button";
+import { ProfileDialog } from "./ProfileDialog";
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
-  const { signOut, user } = useAuth();
 
   useEffect(() => {
     // Simulate initial loading
@@ -19,10 +17,6 @@ export default function Dashboard() {
       clearTimeout(timer);
     };
   }, []);
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
 
   if (isLoading) {
     return (
@@ -39,19 +33,7 @@ export default function Dashboard() {
                   Focus Forge
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">
-                  {user?.user_metadata?.full_name || user?.email}
-                </span>
-                <Button
-                  onClick={handleSignOut}
-                  variant="outline"
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground h-8"
-                >
-                  Sign Out
-                </Button>
-              </div>
+              <ProfileDialog />
             </div>
 
             <DashboardSkeleton />
@@ -75,19 +57,7 @@ export default function Dashboard() {
                 Focus Forge
               </h1>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">
-                {user?.user_metadata?.full_name || user?.email}
-              </span>
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground h-8"
-              >
-                Sign Out
-              </Button>
-            </div>
+            <ProfileDialog />
           </div>
 
           <TimeTrackingDashboard />
