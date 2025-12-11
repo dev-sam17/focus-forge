@@ -71,6 +71,19 @@ const electronAPI = {
       return ipcInvoke("activity-monitor-is-running");
     },
   },
+  setActiveTrackersStatus: (hasActive: boolean) => {
+    electron.ipcRenderer.send("active-trackers-status", hasActive);
+  },
+  onStopAllTrackers: (callback: () => void) => {
+    return ipcOn("stop-all-trackers", () => {
+      callback();
+    });
+  },
+  onSystemSuspending: (callback: () => void) => {
+    return ipcOn("system-suspending", () => {
+      callback();
+    });
+  },
 };
 
 try {

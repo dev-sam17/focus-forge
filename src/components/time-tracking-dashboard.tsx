@@ -50,9 +50,14 @@ export default function TimeTrackingDashboard({
     return () => unsubscribe();
   }, []);
 
-  // Control activity monitor based on active sessions
+  // Control activity monitor based on active sessions and notify main process
   useEffect(() => {
     const hasActiveSessions = Object.keys(activeSessions).length > 0;
+
+    // Notify main process about active trackers status
+    if (window.electron?.setActiveTrackersStatus) {
+      window.electron.setActiveTrackersStatus(hasActiveSessions);
+    }
 
     if (window.electron?.activityMonitor) {
       if (hasActiveSessions) {
@@ -61,6 +66,33 @@ export default function TimeTrackingDashboard({
         window.electron.activityMonitor.stop();
       }
     }
+  }, [activeSessions]);
+
+  // Handle stop-all-trackers event from main process (when user tries to quit with active trackers)
+  useEffect(() => {
+    if (!window.electron?.onStopAllTrackers) return;
+
+    const unsubscribe = window.electron.onStopAllTrackers(() => {
+      stopAllActiveSessions();
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Handle system-suspending event (sleep/hibernate)
+  useEffect(() => {
+    if (!window.electron?.onSystemSuspending) return;
+
+    const unsubscribe = window.electron.onSystemSuspending(() => {
+      // Show alert to user that system is suspending with active trackers
+      if (Object.keys(activeSessions).length > 0) {
+        alert(
+          "System is going to sleep! Please stop your trackers to avoid data loss."
+        );
+      }
+    });
+
+    return () => unsubscribe();
   }, [activeSessions]);
 
   // Auto-stop timer logic

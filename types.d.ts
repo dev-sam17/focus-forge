@@ -43,6 +43,8 @@ export type EventPayloadMapping = {
   "activity-monitor-stop": ActivityMonitorResponse;
   "activity-monitor-update-config": ActivityMonitorResponse;
   "activity-monitor-is-running": ActivityMonitorStatus;
+  "stop-all-trackers": void;
+  "system-suspending": void;
 };
 
 export type UnsubscribeFunction = () => void;
@@ -78,6 +80,9 @@ declare global {
         ) => Promise<ActivityMonitorResponse>;
         isRunning: () => Promise<ActivityMonitorStatus>;
       };
+      setActiveTrackersStatus: (hasActive: boolean) => void;
+      onStopAllTrackers: (callback: () => void) => UnsubscribeFunction;
+      onSystemSuspending: (callback: () => void) => UnsubscribeFunction;
     };
   }
 }

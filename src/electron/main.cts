@@ -6,6 +6,8 @@ import {
   nativeImage,
   shell,
   ipcMain,
+  dialog,
+  powerMonitor,
 } from "electron";
 import { join } from "node:path";
 import { startIdleMonitoring, type MonitorConfig } from "./activityMonitor.cjs";
@@ -18,6 +20,7 @@ let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 let forceQuit = false;
 let activityMonitor: ReturnType<typeof startIdleMonitoring> | null = null;
+let hasActiveTrackers = false;
 
 function createWindow() {
   // Configure title bar based on platform
@@ -84,9 +87,6 @@ function createWindow() {
       }
     });
   }
-
-  pollResources(mainWindow);
-
   return mainWindow;
 }
 
@@ -129,8 +129,57 @@ function createTray() {
   });
 }
 
-app.on("will-quit", () => {
-  // App is quitting
+app.on("will-quit", (event) => {
+  if (hasActiveTrackers && !forceQuit) {
+    event.preventDefault();
+    showActiveTrackersDialog();
+  }
+});
+
+// Handle system sleep/hibernate
+function setupPowerMonitor() {
+  powerMonitor.on("suspend", () => {
+    if (hasActiveTrackers && mainWindow) {
+      // Show warning before system suspends
+      mainWindow.show();
+      mainWindow.focus();
+      mainWindow.webContents.send("system-suspending");
+    }
+  });
+}
+
+async function showActiveTrackersDialog() {
+  if (!mainWindow) return;
+
+  mainWindow.show();
+  mainWindow.focus();
+
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: "warning",
+    title: "Active Trackers Running",
+    message: "You have active time trackers running!",
+    detail:
+      "Please stop all trackers before quitting. Unstopped trackers may lose data.",
+    buttons: ["Stop All & Quit", "Cancel"],
+    defaultId: 1,
+    cancelId: 1,
+  });
+
+  if (result.response === 0) {
+    // User chose to stop all trackers
+    mainWindow.webContents.send("stop-all-trackers");
+
+    // Wait a moment for trackers to stop, then proceed
+    setTimeout(() => {
+      forceQuit = true;
+      app.quit();
+    }, 1000);
+  }
+}
+
+// IPC: Update active trackers status from renderer
+ipcMain.on("active-trackers-status", (_event, hasActive: boolean) => {
+  hasActiveTrackers = hasActive;
 });
 
 // Protocol client registration moved to app.whenReady()
@@ -326,6 +375,9 @@ if (!gotTheLock) {
     });
     // Stop it immediately after initialization
     activityMonitor.stop();
+
+    // Setup power monitor for shutdown/sleep detection
+    setupPowerMonitor();
   });
 }
 
