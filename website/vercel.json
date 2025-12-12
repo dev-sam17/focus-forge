@@ -1,6 +1,4 @@
 {
     "buildCommand": "mv ../pnpm-workspace.yaml ../pnpm-workspace.yaml.bak 2>/dev/null || true && pnpm install --no-frozen-lockfile && pnpm build && mv ../pnpm-workspace.yaml.bak ../pnpm-workspace.yaml 2>/dev/null || true",
-    "installCommand": "echo 'Skipping root install'",
-    "framework": null,
-    "outputDirectory": ".next"
+    "installCommand": "echo 'Skipping root install'"
 }
