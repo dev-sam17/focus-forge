@@ -6,8 +6,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
-  signInWithFacebook: () => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: (useExternal?: boolean) => Promise<{ error: AuthError | null }>;
+  signInWithFacebook: (useExternal?: boolean) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
 }
 
@@ -181,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (useExternal = false) => {
     try {
       const redirectTo = getOAuthRedirectUrl();
       const isElectronApp = isElectron();
@@ -190,12 +190,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("OAuth redirect URL:", redirectTo);
       console.log("Environment:", isDev ? "development" : "production");
       console.log("Is Electron:", isElectronApp);
+      console.log("Use external browser:", useExternal);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
-          skipBrowserRedirect: !isDev,
+          skipBrowserRedirect: true,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -208,13 +209,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Handle URL opening based on environment
       if (data?.url) {
-        if (isElectronApp && window.electron?.openExternal && !isDev) {
-          // Electron: open in external browser
+        if (useExternal && isElectronApp && window.electron?.openExternal) {
+          // Open in external system browser (relies on deep link callback)
           await window.electron.openExternal(data.url);
         } else {
-          // Development web mode: redirect in same window
+          // Navigate in the same BrowserWindow
           window.location.href = data.url;
         }
       }
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithFacebook = async () => {
+  const signInWithFacebook = async (useExternal = false) => {
     try {
       const redirectTo = getOAuthRedirectUrl();
       const isElectronApp = isElectron();
@@ -235,12 +235,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("OAuth redirect URL:", redirectTo);
       console.log("Environment:", isDev ? "development" : "production");
       console.log("Is Electron:", isElectronApp);
+      console.log("Use external browser:", useExternal);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
           redirectTo,
-          skipBrowserRedirect: !isDev,
+          skipBrowserRedirect: true,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -253,13 +254,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Handle URL opening based on environment
       if (data?.url) {
-        if (isElectronApp && window.electron?.openExternal && !isDev) {
-          // Electron: open in external browser
+        if (useExternal && isElectronApp && window.electron?.openExternal) {
           await window.electron.openExternal(data.url);
         } else {
-          // Development web mode: redirect in same window
           window.location.href = data.url;
         }
       }

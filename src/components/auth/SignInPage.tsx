@@ -1,40 +1,45 @@
 import React from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../ui/button'
-import { Clock, Sparkles, Chrome, Facebook, Loader2 } from 'lucide-react'
+import { Clock, Sparkles, Chrome, Facebook, Loader2, ExternalLink, Monitor } from 'lucide-react'
 
 export default function SignInPage() {
   const { signInWithGoogle, signInWithFacebook, loading } = useAuth()
   const [googleLoading, setGoogleLoading] = React.useState(false)
   const [facebookLoading, setFacebookLoading] = React.useState(false)
+  const [googleExtLoading, setGoogleExtLoading] = React.useState(false)
+  const [facebookExtLoading, setFacebookExtLoading] = React.useState(false)
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true)
+  const isElectronProd = typeof window !== 'undefined' && !!window.electron && import.meta.env.PROD
+  const anyLoading = googleLoading || facebookLoading || googleExtLoading || facebookExtLoading
+
+  const handleGoogleSignIn = async (useExternal = false) => {
+    const setLoadingState = useExternal ? setGoogleExtLoading : setGoogleLoading
+    setLoadingState(true)
     try {
-      const { error } = await signInWithGoogle()
+      const { error } = await signInWithGoogle(useExternal)
       if (error) {
         console.error('Google sign in error:', error)
-        // You can add toast notification here
       }
     } catch (error) {
       console.error('Google sign in error:', error)
     } finally {
-      setGoogleLoading(false)
+      setLoadingState(false)
     }
   }
 
-  const handleFacebookSignIn = async () => {
-    setFacebookLoading(true)
+  const handleFacebookSignIn = async (useExternal = false) => {
+    const setLoadingState = useExternal ? setFacebookExtLoading : setFacebookLoading
+    setLoadingState(true)
     try {
-      const { error } = await signInWithFacebook()
+      const { error } = await signInWithFacebook(useExternal)
       if (error) {
         console.error('Facebook sign in error:', error)
-        // You can add toast notification here
       }
     } catch (error) {
       console.error('Facebook sign in error:', error)
     } finally {
-      setFacebookLoading(false)
+      setLoadingState(false)
     }
   }
 
@@ -53,7 +58,7 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 relative overflow-hidden">
-      
+
       {/* Animated Background Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-float" />
@@ -79,7 +84,7 @@ export default function SignInPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold text-foreground">Welcome back!</h2>
               <p className="text-muted-foreground">
@@ -94,11 +99,11 @@ export default function SignInPage() {
               <h3 className="text-lg font-semibold text-center text-foreground mb-6">
                 Choose your sign-in method
               </h3>
-              
-              {/* Google Sign In */}
+
+              {/* Google Sign In - In Window */}
               <Button
-                onClick={handleGoogleSignIn}
-                disabled={googleLoading || facebookLoading}
+                onClick={() => handleGoogleSignIn(false)}
+                disabled={anyLoading}
                 className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-300 hover:shadow-lg"
                 variant="outline"
               >
@@ -108,12 +113,40 @@ export default function SignInPage() {
                   <Chrome className="w-5 h-5 mr-3 text-blue-600" />
                 )}
                 Continue with Google
+                {isElectronProd && <Monitor className="w-4 h-4 ml-auto text-gray-400" />}
               </Button>
 
-              {/* Facebook Sign In */}
+              {/* Google Sign In - External Browser (production Electron only) */}
+              {isElectronProd && (
+                <Button
+                  onClick={() => handleGoogleSignIn(true)}
+                  disabled={anyLoading}
+                  className="w-full h-10 bg-white/60 hover:bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-300 transition-all duration-300 text-sm"
+                  variant="outline"
+                >
+                  {googleExtLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Chrome className="w-4 h-4 mr-2 text-blue-400" />
+                  )}
+                  Google via External Browser
+                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
+                </Button>
+              )}
+
+              {/* Divider */}
+              {isElectronProd && (
+                <div className="relative py-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border/30" />
+                  </div>
+                </div>
+              )}
+
+              {/* Facebook Sign In - In Window */}
               <Button
-                onClick={handleFacebookSignIn}
-                disabled={googleLoading || facebookLoading}
+                onClick={() => handleFacebookSignIn(false)}
+                disabled={anyLoading}
                 className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] text-white transition-all duration-300 hover:shadow-lg"
               >
                 {facebookLoading ? (
@@ -122,7 +155,32 @@ export default function SignInPage() {
                   <Facebook className="w-5 h-5 mr-3" />
                 )}
                 Continue with Facebook
+                {isElectronProd && <Monitor className="w-4 h-4 ml-auto text-white/50" />}
               </Button>
+
+              {/* Facebook Sign In - External Browser (production Electron only) */}
+              {isElectronProd && (
+                <Button
+                  onClick={() => handleFacebookSignIn(true)}
+                  disabled={anyLoading}
+                  className="w-full h-10 bg-[#1877F2]/60 hover:bg-[#1877F2]/80 text-white/80 border border-[#1877F2]/30 transition-all duration-300 text-sm"
+                >
+                  {facebookExtLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Facebook className="w-4 h-4 mr-2" />
+                  )}
+                  Facebook via External Browser
+                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-white/50" />
+                </Button>
+              )}
+
+              {/* Hint for external browser */}
+              {isElectronProd && (
+                <p className="text-xs text-center text-muted-foreground/70 pt-1">
+                  <Monitor className="w-3 h-3 inline mr-1" /> In-app window &nbsp;·&nbsp; <ExternalLink className="w-3 h-3 inline mr-1" /> System browser
+                </p>
+              )}
             </div>
 
             <div className="pt-4 border-t border-border/20">

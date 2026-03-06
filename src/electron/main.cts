@@ -213,21 +213,23 @@ function handleOAuthCallback(url: string) {
       url.includes("code") ||
       url.includes("auth/callback"))
   ) {
-    // Ensure the main window is ready
-    if (mainWindow.webContents.isLoading()) {
-      mainWindow.webContents.once("did-finish-load", () => {
-        mainWindow!.webContents.send("oauth-callback", url);
-      });
-    } else {
-      // Send the callback URL to the renderer process
-      mainWindow.webContents.send("oauth-callback", url);
-    }
+    // Reload the app first so the renderer is ready to receive the callback
+    const loadApp = () => {
+      if (isDev()) {
+        mainWindow!.loadURL("http://localhost:5123");
+      } else {
+        mainWindow!.loadFile(getUIPath());
+      }
+    };
+
+    // Load the app page, then send the callback once it's ready
+    loadApp();
+    mainWindow.webContents.once("did-finish-load", () => {
+      mainWindow!.webContents.send("oauth-callback", url);
+    });
 
     mainWindow.show();
     mainWindow.focus();
-
-    // Don't navigate to a different URL - let the renderer handle the callback
-    // The renderer process will handle the code exchange and session management
   }
 }
 
@@ -252,8 +254,16 @@ app.on("web-contents-created", (event, contents) => {
     return { action: "allow" };
   });
 
-  // Also handle navigation events
+  // Also handle navigation events (renderer-initiated)
   contents.on("will-navigate", (event, url) => {
+    if (url.includes("focus-forge://")) {
+      event.preventDefault();
+      handleOAuthCallback(url);
+    }
+  });
+
+  // Handle server-side redirects (e.g., OAuth provider redirecting to focus-forge://)
+  contents.on("will-redirect", (event, url) => {
     if (url.includes("focus-forge://")) {
       event.preventDefault();
       handleOAuthCallback(url);
