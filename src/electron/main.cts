@@ -9,7 +9,7 @@ import {
   dialog,
   powerMonitor,
 } from "electron";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { startIdleMonitoring, type MonitorConfig } from "./activityMonitor.cjs";
 import { isDev } from "./util.cjs";
 import { pollResources } from "./resourceManager.cjs";
@@ -27,21 +27,21 @@ function createWindow() {
   const titleBarConfig =
     process.platform === "darwin"
       ? {
-          // macOS: Use hidden-inset to show traffic lights on the left
-          frame: false,
-          titleBarStyle: "hiddenInset" as const,
-          titleBarOverlay: false,
-        }
+        // macOS: Use hidden-inset to show traffic lights on the left
+        frame: false,
+        titleBarStyle: "hiddenInset" as const,
+        titleBarOverlay: false,
+      }
       : {
-          // Windows/Linux: Use custom title bar overlay
-          frame: true,
-          titleBarStyle: "hidden" as const,
-          titleBarOverlay: {
-            color: "#ffffff00",
-            symbolColor: "#ffffff",
-            height: 30,
-          },
-        };
+        // Windows/Linux: Use custom title bar overlay
+        frame: true,
+        titleBarStyle: "hidden" as const,
+        titleBarOverlay: {
+          color: "#ffffff00",
+          symbolColor: "#ffffff",
+          height: 30,
+        },
+      };
 
   mainWindow = new BrowserWindow({
     title: "Focus Forge",
@@ -322,35 +322,35 @@ if (!gotTheLock) {
     if (process.platform === "linux") {
       // For Linux, we need to ensure the protocol is registered with the correct executable path
       if (app.isPackaged) {
+        // AppImage runs from a temporary mount, so we need to use the APPIMAGE env var if available
+        const executablePath = process.env.APPIMAGE || process.execPath;
         const success = app.setAsDefaultProtocolClient(
           "focus-forge",
-          process.execPath
+          executablePath
         );
         console.log(
-          `Linux protocol registration (packaged): ${
-            success ? "SUCCESS" : "FAILED"
+          `Linux protocol registration (packaged): ${success ? "SUCCESS" : "FAILED"
           }`
         );
-        console.log(`Executable path: ${process.execPath}`);
+        console.log(`Executable path: ${executablePath}`);
       } else {
         // In development, use the electron executable
         const success = app.setAsDefaultProtocolClient(
           "focus-forge",
           process.execPath,
-          [process.cwd()]
+          [resolve(process.argv[1])]
         );
         console.log(
           `Linux protocol registration (dev): ${success ? "SUCCESS" : "FAILED"}`
         );
         console.log(`Executable path: ${process.execPath}`);
-        console.log(`Working directory: ${process.cwd()}`);
+        console.log(`Working directory: ${resolve(process.argv[1])}`);
       }
     } else {
       // For Windows and macOS, the simple registration works
       const success = app.setAsDefaultProtocolClient("focus-forge");
       console.log(
-        `Protocol registration (${process.platform}): ${
-          success ? "SUCCESS" : "FAILED"
+        `Protocol registration (${process.platform}): ${success ? "SUCCESS" : "FAILED"
         }`
       );
     }
