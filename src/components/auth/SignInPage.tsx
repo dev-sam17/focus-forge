@@ -1,17 +1,15 @@
 import React from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../ui/button'
-import { Clock, Sparkles, Chrome, Facebook, Loader2, ExternalLink, Monitor } from 'lucide-react'
+import { Clock, Sparkles, Chrome, Loader2, ExternalLink, Monitor } from 'lucide-react'
 
 export default function SignInPage() {
-  const { signInWithGoogle, signInWithFacebook, loading } = useAuth()
+  const { signInWithGoogle, loading } = useAuth()
   const [googleLoading, setGoogleLoading] = React.useState(false)
-  const [facebookLoading, setFacebookLoading] = React.useState(false)
   const [googleExtLoading, setGoogleExtLoading] = React.useState(false)
-  const [facebookExtLoading, setFacebookExtLoading] = React.useState(false)
 
-  const isElectronProd = typeof window !== 'undefined' && !!window.electron && import.meta.env.PROD
-  const anyLoading = googleLoading || facebookLoading || googleExtLoading || facebookExtLoading
+  const isElectronApp = typeof window !== 'undefined' && !!window.electron
+  const anyLoading = googleLoading || googleExtLoading
 
   const handleGoogleSignIn = async (useExternal = false) => {
     const setLoadingState = useExternal ? setGoogleExtLoading : setGoogleLoading
@@ -23,21 +21,6 @@ export default function SignInPage() {
       }
     } catch (error) {
       console.error('Google sign in error:', error)
-    } finally {
-      setLoadingState(false)
-    }
-  }
-
-  const handleFacebookSignIn = async (useExternal = false) => {
-    const setLoadingState = useExternal ? setFacebookExtLoading : setFacebookLoading
-    setLoadingState(true)
-    try {
-      const { error } = await signInWithFacebook(useExternal)
-      if (error) {
-        console.error('Facebook sign in error:', error)
-      }
-    } catch (error) {
-      console.error('Facebook sign in error:', error)
     } finally {
       setLoadingState(false)
     }
@@ -104,79 +87,36 @@ export default function SignInPage() {
               <Button
                 onClick={() => handleGoogleSignIn(false)}
                 disabled={anyLoading}
-                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-300 hover:shadow-lg"
-                variant="outline"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 transition-all duration-300 hover:shadow-lg"
               >
                 {googleLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin mr-3" />
                 ) : (
-                  <Chrome className="w-5 h-5 mr-3 text-blue-600" />
+                  <Chrome className="w-5 h-5 mr-3" />
                 )}
                 Continue with Google
-                {isElectronProd && <Monitor className="w-4 h-4 ml-auto text-gray-400" />}
+                {isElectronApp && <Monitor className="w-4 h-4 ml-auto text-white/60" />}
               </Button>
 
-              {/* Google Sign In - External Browser (production Electron only) */}
-              {isElectronProd && (
+              {/* Google Sign In - External Browser (Electron only) */}
+              {isElectronApp && (
                 <Button
                   onClick={() => handleGoogleSignIn(true)}
                   disabled={anyLoading}
-                  className="w-full h-10 bg-white/60 hover:bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-300 transition-all duration-300 text-sm"
-                  variant="outline"
+                  className="w-full h-10 bg-blue-600/40 hover:bg-blue-600/60 text-white border border-blue-500/30 transition-all duration-300 text-sm"
                 >
                   {googleExtLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : (
-                    <Chrome className="w-4 h-4 mr-2 text-blue-400" />
+                    <Chrome className="w-4 h-4 mr-2" />
                   )}
                   Google via External Browser
-                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400" />
+                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-white/60" />
                 </Button>
               )}
 
-              {/* Divider */}
-              {isElectronProd && (
-                <div className="relative py-1">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border/30" />
-                  </div>
-                </div>
-              )}
-
-              {/* Facebook Sign In - In Window */}
-              <Button
-                onClick={() => handleFacebookSignIn(false)}
-                disabled={anyLoading}
-                className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] text-white transition-all duration-300 hover:shadow-lg"
-              >
-                {facebookLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin mr-3" />
-                ) : (
-                  <Facebook className="w-5 h-5 mr-3" />
-                )}
-                Continue with Facebook
-                {isElectronProd && <Monitor className="w-4 h-4 ml-auto text-white/50" />}
-              </Button>
-
-              {/* Facebook Sign In - External Browser (production Electron only) */}
-              {isElectronProd && (
-                <Button
-                  onClick={() => handleFacebookSignIn(true)}
-                  disabled={anyLoading}
-                  className="w-full h-10 bg-[#1877F2]/60 hover:bg-[#1877F2]/80 text-white/80 border border-[#1877F2]/30 transition-all duration-300 text-sm"
-                >
-                  {facebookExtLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Facebook className="w-4 h-4 mr-2" />
-                  )}
-                  Facebook via External Browser
-                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-white/50" />
-                </Button>
-              )}
-
-              {/* Hint for external browser */}
-              {isElectronProd && (
+              {/* Hint for options */}
+              {isElectronApp && (
                 <p className="text-xs text-center text-muted-foreground/70 pt-1">
                   <Monitor className="w-3 h-3 inline mr-1" /> In-app window &nbsp;·&nbsp; <ExternalLink className="w-3 h-3 inline mr-1" /> System browser
                 </p>

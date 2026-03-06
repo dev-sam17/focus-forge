@@ -48,6 +48,9 @@ const electronAPI = {
   openExternal: (url: string) => {
     return ipcInvoke("open-external", url);
   },
+  openOAuthWindow: (url: string) => {
+    return ipcInvoke("open-oauth-window", url);
+  },
   onOAuthCallback: (callback: (url: string) => void) => {
     return ipcOn("oauth-callback", (url: string) => {
       callback(url);

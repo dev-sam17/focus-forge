@@ -213,20 +213,14 @@ function handleOAuthCallback(url: string) {
       url.includes("code") ||
       url.includes("auth/callback"))
   ) {
-    // Reload the app first so the renderer is ready to receive the callback
-    const loadApp = () => {
-      if (isDev()) {
-        mainWindow!.loadURL("http://localhost:5123");
-      } else {
-        mainWindow!.loadFile(getUIPath());
-      }
-    };
-
-    // Load the app page, then send the callback once it's ready
-    loadApp();
-    mainWindow.webContents.once("did-finish-load", () => {
-      mainWindow!.webContents.send("oauth-callback", url);
-    });
+    // If the main window's webContents is still loading (e.g. after a reload), wait
+    if (mainWindow.webContents.isLoading()) {
+      mainWindow.webContents.once("did-finish-load", () => {
+        mainWindow!.webContents.send("oauth-callback", url);
+      });
+    } else {
+      mainWindow.webContents.send("oauth-callback", url);
+    }
 
     mainWindow.show();
     mainWindow.focus();
@@ -278,6 +272,63 @@ ipcMain.handle("open-external", async (_event, url: string) => {
   } catch (err) {
     console.error("Failed to open external URL:", url, err);
   }
+});
+
+// IPC: open OAuth popup window (in-app OAuth flow)
+ipcMain.handle("open-oauth-window", async (_event, url: string) => {
+  return new Promise<void>((resolve) => {
+    const oauthWindow = new BrowserWindow({
+      width: 600,
+      height: 700,
+      parent: mainWindow || undefined,
+      modal: false,
+      show: true,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+    });
+
+    oauthWindow.loadURL(url);
+
+    const handleRedirect = (redirectUrl: string) => {
+      if (
+        redirectUrl.includes("focus-forge://") ||
+        (isDev() && redirectUrl.includes("localhost:5123/auth/callback"))
+      ) {
+        handleOAuthCallback(redirectUrl);
+        oauthWindow.close();
+        resolve();
+      }
+    };
+
+    // Intercept navigations to callback URLs
+    oauthWindow.webContents.on("will-navigate", (event, navUrl) => {
+      if (
+        navUrl.includes("focus-forge://") ||
+        (isDev() && navUrl.includes("localhost:5123/auth/callback"))
+      ) {
+        event.preventDefault();
+        handleRedirect(navUrl);
+      }
+    });
+
+    // Intercept server-side redirects to callback URLs
+    oauthWindow.webContents.on("will-redirect", (event, navUrl) => {
+      if (
+        navUrl.includes("focus-forge://") ||
+        (isDev() && navUrl.includes("localhost:5123/auth/callback"))
+      ) {
+        event.preventDefault();
+        handleRedirect(navUrl);
+      }
+    });
+
+    // If user closes the popup without completing OAuth
+    oauthWindow.on("closed", () => {
+      resolve();
+    });
+  });
 });
 
 // IPC: Activity monitor controls

@@ -27,13 +27,15 @@ export const isElectron = () =>
 
 // OAuth redirect URL configuration
 export const getOAuthRedirectUrl = () => {
-  if (isDevelopment()) {
-    // In development, use localhost URL for web-based OAuth flow
-    return `http://localhost:5123/auth/callback`;
-  } else {
-    // In production, use custom protocol for Electron
+  if (isElectron()) {
+    // In Electron (both dev and prod), always use custom protocol
+    // This allows the external browser flow to deep-link back to the app
+    // and the in-window popup flow to intercept the redirect.
     return `focus-forge://auth/callback`;
   }
+
+  // For pure web development fallback
+  return `http://localhost:5123/auth/callback`;
 };
 
 export const SUPABASE_URL = getEnvVar("VITE_SUPABASE_URL");

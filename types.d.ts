@@ -38,6 +38,7 @@ export type EventPayloadMapping = {
   "user-idle-time": number;
   "user-inactive": boolean;
   "open-external": void;
+  "open-oauth-window": void;
   "oauth-callback": string;
   "activity-monitor-start": ActivityMonitorResponse;
   "activity-monitor-stop": ActivityMonitorResponse;
@@ -51,10 +52,10 @@ export type UnsubscribeFunction = () => void;
 
 export type TrackerReturnType =
   | {
-      success: boolean;
-      message?: string;
-      error?: string;
-    }
+    success: boolean;
+    message?: string;
+    error?: string;
+  }
   | undefined;
 
 declare global {
@@ -71,6 +72,7 @@ declare global {
       ) => UnsubscribeFunction;
       getStaticData: () => Promise<StaticData>;
       openExternal: (url: string) => Promise<void>;
+      openOAuthWindow: (url: string) => Promise<void>;
       onOAuthCallback: (callback: (url: string) => void) => UnsubscribeFunction;
       activityMonitor: {
         start: () => Promise<ActivityMonitorResponse>;
