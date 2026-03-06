@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import type { Tracker } from "../lib/types";
+import type { Tracker, WorkStats } from "../lib/types";
 import { useAuth } from "../contexts/AuthContext";
 import useApiClient from "../hooks/useApiClient";
 import DailyHoursChart from "./charts/daily-hours-chart";
@@ -68,6 +68,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
   const [productivityData, setProductivityData] = useState<ProductivityData[]>(
     []
   );
+  const [trackerStats, setTrackerStats] = useState<WorkStats | null>(null);
 
   const { user } = useAuth();
   const api = useApiClient(user?.id);
@@ -78,11 +79,11 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
       const savedTask = localStorage.getItem('statistics-selected-task');
       const savedTimeRange = localStorage.getItem('statistics-time-range');
       const savedTab = localStorage.getItem('statistics-active-tab');
-      
+
       if (savedTask) setSelectedTask(savedTask);
       if (savedTimeRange) setTimeRange(savedTimeRange);
       if (savedTab) setActiveTab(savedTab);
-      
+
       setInitialized(true);
     }
   }, [initialized]);
@@ -94,8 +95,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     setIsLoading(true);
     try {
       const res = await api<DailyTotal[]>(
-        `/users/${user.id}/daily-totals/${timeRange}?trackerId=${
-          selectedTask === "all" ? "" : selectedTask
+        `/users/${user.id}/daily-totals/${timeRange}?trackerId=${selectedTask === "all" ? "" : selectedTask
         }`
       );
       if (res.success && res.data) {
@@ -115,8 +115,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
 
     try {
       const res = await api<TotalHours>(
-        `/users/${user.id}/total-hours/${timeRange}?trackerId=${
-          selectedTask !== "all" ? selectedTask : ""
+        `/users/${user.id}/total-hours/${timeRange}?trackerId=${selectedTask !== "all" ? selectedTask : ""
         }`
       );
       if (res.success && res.data) {
@@ -192,8 +191,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
 
     try {
       const res = await api<ProductivityData[]>(
-        `/users/${user.id}/productivity-trend/${timeRange}?trackerId=${
-          selectedTask !== "all" ? selectedTask : ""
+        `/users/${user.id}/productivity-trend/${timeRange}?trackerId=${selectedTask !== "all" ? selectedTask : ""
         }`
       );
       if (res.success && res.data) {
@@ -205,10 +203,31 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
     }
   };
 
+  const fetchTrackerStats = async () => {
+    if (!user?.id || selectedTask === "all") {
+      setTrackerStats(null);
+      return;
+    }
+
+    try {
+      const res = await api<WorkStats>(`/trackers/${selectedTask}/stats`);
+      if (res.success && res.data) {
+        setTrackerStats(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch tracker stats:", error);
+      setTrackerStats(null);
+    }
+  };
+
   // Handle task selection change and save to localStorage
   const handleTaskChange = (value: string) => {
     setSelectedTask(value);
     localStorage.setItem('statistics-selected-task', value);
+    if (value === "all" && activeTab === "total") {
+      setActiveTab("today");
+      localStorage.setItem('statistics-active-tab', "today");
+    }
   };
 
   // Handle time range change and save to localStorage
@@ -230,6 +249,7 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
       fetchTotalHours();
       fetchTrackerHours();
       fetchProductivityData();
+      fetchTrackerStats();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, timeRange, selectedTask, initialized]);
@@ -268,12 +288,77 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex flex-wrap h-auto gap-2">
+          {selectedTask !== "all" && (
+            <TabsTrigger value="total">Total</TabsTrigger>
+          )}
           <TabsTrigger value="today">Today's Stats</TabsTrigger>
           <TabsTrigger value="daily">Daily Hours</TabsTrigger>
           <TabsTrigger value="distribution">Hours Distribution</TabsTrigger>
           <TabsTrigger value="productivity">Productivity Trend</TabsTrigger>
         </TabsList>
+
+        {selectedTask !== "all" && (
+          <TabsContent value="total">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Overall Task Statistics</span>
+                  <WorkDays
+                    workDays={
+                      tasks.find((t) => t.id === selectedTask)?.workDays ?? ""
+                    }
+                    isAll={false}
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {trackerStats ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                    <div className="glass rounded-xl p-5 space-y-2 border border-border/30">
+                      <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Total Days Worked
+                      </div>
+                      <div className="text-3xl font-bold">{trackerStats.totalWorkDays || 0}</div>
+                    </div>
+                    <div className="glass rounded-xl p-5 space-y-2 border border-border/30">
+                      <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Total Hours Worked
+                      </div>
+                      <div className="text-3xl font-bold">{trackerStats.totalWorkHours || 0}h</div>
+                    </div>
+                    <div className="glass rounded-xl p-5 space-y-2 border border-border/30">
+                      <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Target Hours
+                      </div>
+                      <div className="text-3xl font-bold">{trackerStats.targetWorkHours || 0}h</div>
+                    </div>
+                    <div className="glass rounded-xl p-5 space-y-2 border border-success/30 bg-success/5">
+                      <div className="text-sm font-medium text-success flex items-center gap-2">
+                        Advance Buffer
+                      </div>
+                      <div className="text-3xl font-bold text-success">+{trackerStats.workAdvance}h</div>
+                      <p className="text-xs text-success/70">Extra hours forged</p>
+                    </div>
+                    <div className="glass rounded-xl p-5 space-y-2 border border-destructive/30 bg-destructive/5 sm:col-span-2 md:col-span-1">
+                      <div className="text-sm font-medium text-destructive flex items-center gap-2">
+                        Work Debt
+                      </div>
+                      <div className="text-3xl font-bold text-destructive">-{trackerStats.workDebt}h</div>
+                      <p className="text-xs text-destructive/70">Hours remaining to meet target</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center">
+                    <div className="animate-pulse text-muted-foreground">
+                      Loading total statistics...
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="today">
           <TodayStatsComponent selectedTask={selectedTask} />
@@ -387,11 +472,10 @@ function WorkDays({ workDays, isAll }: { workDays: string; isAll: boolean }) {
         return (
           <div
             key={index}
-            className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-all duration-200 ${
-              isActive
-                ? "bg-gradient-to-r from-primary to-accent text-white shadow-sm"
-                : "bg-muted/50 text-muted-foreground hover:bg-muted"
-            }`}
+            className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-all duration-200 ${isActive
+              ? "bg-gradient-to-r from-primary to-accent text-white shadow-sm"
+              : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
           >
             {day}
           </div>

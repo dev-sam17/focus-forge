@@ -31,7 +31,10 @@ export interface NewTracker {
 export interface WorkStats {
   workDebt: number;
   workAdvance: number;
-} 
+  totalWorkDays?: number;
+  totalWorkHours?: number;
+  targetWorkHours?: number;
+}
 
 export interface SessionData {
   id: string
