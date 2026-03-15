@@ -12,7 +12,6 @@ import {
 import { join, resolve } from "node:path";
 import { startIdleMonitoring, type MonitorConfig } from "./activityMonitor.cjs";
 import { isDev } from "./util.cjs";
-import { pollResources } from "./resourceManager.cjs";
 import { getPreloadPath, getUIPath } from "./pathResolver.cjs";
 import { setupAutoUpdater } from "./updater.cjs";
 
