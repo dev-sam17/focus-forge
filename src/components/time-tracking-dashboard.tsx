@@ -84,12 +84,8 @@ export default function TimeTrackingDashboard({
     if (!window.electron?.onSystemSuspending) return;
 
     const unsubscribe = window.electron.onSystemSuspending(() => {
-      // Show alert to user that system is suspending with active trackers
-      if (Object.keys(activeSessions).length > 0) {
-        alert(
-          "System is going to sleep! Please stop your trackers to avoid data loss."
-        );
-      }
+      // Stop all active sessions when system is suspending
+      stopAllActiveSessions();
     });
 
     return () => unsubscribe();
