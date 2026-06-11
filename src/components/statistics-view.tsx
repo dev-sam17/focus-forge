@@ -22,6 +22,31 @@ interface StatisticsViewProps {
   tasks: Tracker[];
 }
 
+// Computes the number of hours to work daily to recover the current work debt.
+// Tiers define the break-even period and a cap on the required daily hours.
+function getRequiredTargetHours(workDebt: number): number {
+  if (workDebt <= 0) return 0;
+
+  let breakEvenDays: number;
+  let maxHours: number;
+
+  if (workDebt > 300) {
+    breakEvenDays = 40;
+    maxHours = 12;
+  } else if (workDebt > 200) {
+    breakEvenDays = 30;
+    maxHours = 10;
+  } else if (workDebt > 100) {
+    breakEvenDays = 20;
+    maxHours = 8;
+  } else {
+    breakEvenDays = 10;
+    maxHours = 6;
+  }
+
+  return Math.min(Math.round(workDebt / breakEvenDays), maxHours);
+}
+
 interface DailyTotal {
   date: string;
   totalMinutes: number;
@@ -346,6 +371,13 @@ export default function StatisticsView({ tasks }: StatisticsViewProps) {
                       </div>
                       <div className="text-3xl font-bold text-destructive">-{trackerStats.workDebt}h</div>
                       <p className="text-xs text-destructive/70">Hours remaining to meet target</p>
+                    </div>
+                    <div className="glass rounded-xl p-5 space-y-2 border border-primary/30 bg-primary/5">
+                      <div className="text-sm font-medium text-primary flex items-center gap-2">
+                        Required Target Hours
+                      </div>
+                      <div className="text-3xl font-bold text-primary">{getRequiredTargetHours(trackerStats.workDebt || 0)}h</div>
+                      <p className="text-xs text-primary/70">Daily hours to recover work debt</p>
                     </div>
                   </div>
                 ) : (
