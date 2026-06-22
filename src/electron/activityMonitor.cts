@@ -31,6 +31,11 @@ export function startIdleMonitoring(
   let config: MonitorConfig = { ...initialConfig };
 
   function checkIdleTime() {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      stop();
+      return;
+    }
+
     const idleTime = powerMonitor.getSystemIdleTime();
 
     if (idleTime >= config.idleThresholdSeconds) {

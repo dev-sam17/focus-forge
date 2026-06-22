@@ -129,7 +129,12 @@ function createTray() {
 }
 
 app.on("will-quit", (event) => {
-  if (hasActiveTrackers && !forceQuit) {
+  if (
+    hasActiveTrackers &&
+    !forceQuit &&
+    mainWindow &&
+    !mainWindow.isDestroyed()
+  ) {
     event.preventDefault();
     showActiveTrackersDialog();
   }
@@ -138,7 +143,7 @@ app.on("will-quit", (event) => {
 // Handle system sleep/hibernate
 function setupPowerMonitor() {
   powerMonitor.on("suspend", () => {
-    if (hasActiveTrackers && mainWindow) {
+    if (hasActiveTrackers && mainWindow && !mainWindow.isDestroyed()) {
       // Show warning before system suspends
       mainWindow.show();
       mainWindow.focus();
@@ -148,7 +153,7 @@ function setupPowerMonitor() {
 }
 
 async function showActiveTrackersDialog() {
-  if (!mainWindow) return;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
 
   mainWindow.show();
   mainWindow.focus();
@@ -166,7 +171,9 @@ async function showActiveTrackersDialog() {
 
   if (result.response === 0) {
     // User chose to stop all trackers
-    mainWindow.webContents.send("stop-all-trackers");
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("stop-all-trackers");
+    }
 
     // Wait a moment for trackers to stop, then proceed
     setTimeout(() => {
@@ -198,7 +205,7 @@ app.on("second-instance", (event, commandLine) => {
   }
 
   // Focus main window
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
   }
@@ -208,6 +215,7 @@ function handleOAuthCallback(url: string) {
   console.log("Received OAuth callback URL:", url);
   if (
     mainWindow &&
+    !mainWindow.isDestroyed() &&
     (url.includes("access_token") ||
       url.includes("code") ||
       url.includes("auth/callback"))
