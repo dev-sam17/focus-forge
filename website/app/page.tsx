@@ -546,7 +546,7 @@ export default function Home() {
                       asChild
                     >
                       <Link
-                        href="https://github.com/dev-sam17/focus-forge-react-native/releases/tag/v1.0.0"
+                        href="https://github.com/dev-sam17/focus-forge-react-native/releases/latest"
                         target="_blank"
                       >
                         <Download className="mr-2 h-4 w-4" />
