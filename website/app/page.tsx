@@ -25,6 +25,7 @@ import {
   Sparkles,
   Apple,
   Monitor,
+  Smartphone,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -114,7 +115,7 @@ function AnimatedClock() {
 
 // Platform detection hook
 function usePlatform() {
-  const [platform, setPlatform] = useState<"windows" | "mac" | "linux">(
+  const [platform, setPlatform] = useState<"windows" | "mac" | "linux" | "android">(
     "windows"
   );
 
@@ -122,13 +123,15 @@ function usePlatform() {
     const userAgent = navigator.userAgent.toLowerCase();
     const platform = navigator.platform?.toLowerCase() || "";
 
-    if (
+    if (userAgent.includes("android")) {
+      setPlatform("android");
+    } else if (
       userAgent.includes("iphone") ||
       userAgent.includes("ipad") ||
       platform.includes("mac")
     ) {
       setPlatform("mac");
-    } else if (userAgent.includes("android") || platform.includes("win")) {
+    } else if (platform.includes("win")) {
       setPlatform("windows");
     } else if (platform.includes("linux")) {
       setPlatform("linux");
@@ -241,9 +244,9 @@ export default function Home() {
                   className="mx-auto max-w-[700px] text-muted-foreground md:text-xl leading-relaxed"
                   variants={fadeInUp}
                 >
-                  A lightweight desktop productivity application that helps you
+                  A lightweight desktop and mobile productivity application that helps you
                   track time and forge better focus habits. Built with Electron,
-                  React, and Supabase.
+                  React Native, React, and Supabase.
                 </motion.p>
               </motion.div>
               {/* Animated Clock */}
@@ -265,6 +268,8 @@ export default function Home() {
                       <Apple className="mr-2 h-5 w-5" />
                     ) : platform === "linux" ? (
                       <Monitor className="mr-2 h-5 w-5" />
+                    ) : platform === "android" ? (
+                      <Smartphone className="mr-2 h-5 w-5" />
                     ) : (
                       <Download className="mr-2 h-5 w-5" />
                     )}
@@ -272,6 +277,8 @@ export default function Home() {
                       ? "Download for macOS"
                       : platform === "linux"
                       ? "Download for Linux"
+                      : platform === "android"
+                      ? "Download for Android"
                       : "Download for Windows"}
                   </Link>
                 </Button>
@@ -413,7 +420,7 @@ export default function Home() {
                     </div>
                     <CardTitle className="text-base">Cross-Platform</CardTitle>
                     <CardDescription className="text-sm">
-                      Available for Windows, macOS, and Linux.
+                      Available for Windows, macOS, Linux, and Android.
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -455,7 +462,7 @@ export default function Home() {
               </p>
             </motion.div>
             <motion.div
-              className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto"
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto"
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
@@ -522,6 +529,28 @@ export default function Home() {
                       >
                         <Download className="mr-2 h-4 w-4" />
                         Download .AppImage
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div variants={fadeInUp}>
+                <Card className="text-center h-full border-2 hover:border-chart-4 hover:shadow-xl hover:shadow-chart-4/20 transition-all duration-300 hover:-translate-y-1">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Android</CardTitle>
+                    <CardDescription>Android 8.0+</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      className="w-full bg-gradient-to-r from-chart-4 to-primary hover:opacity-90 shadow-lg"
+                      asChild
+                    >
+                      <Link
+                        href="https://github.com/dev-sam17/focus-forge-react-native/releases/tag/v1.0.0"
+                        target="_blank"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download .apk
                       </Link>
                     </Button>
                   </CardContent>
